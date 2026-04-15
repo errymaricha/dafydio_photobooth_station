@@ -1,0 +1,15 @@
+You are working on Photobooth Station Laravel project.
+
+Rules:
+- Follow AI_AGENT_GUIDE.md
+- Do not break architecture
+- Keep code simple and maintainable
+- Use transactions for critical logic
+- Respect role-based access
+- Avoid duplicate processing
+- Follow status conventions strictly
+
+When building frontend:
+- Use Inertia + Vue
+- Follow folder structure
+- Map API correctly

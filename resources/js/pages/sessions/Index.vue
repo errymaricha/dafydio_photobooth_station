@@ -1,0 +1,272 @@
+<script setup lang="ts">
+import { Link } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+
+import { index as sessionIndex } from '@/actions/App/Http/Controllers/Api/Editor/SessionController';
+import AppLayout from '@/components/layout/AppLayout.vue';
+import EmptyState from '@/components/ui/EmptyState.vue';
+import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useApi } from '@/composables/useApi';
+import * as sessionRoutes from '@/routes/sessions';
+
+type SessionItem = {
+    id: string;
+    session_code?: string;
+    name?: string;
+    device_name?: string;
+    device_code?: string;
+    status?: string;
+    created_at?: string;
+    thumbnail_url?: string | null;
+};
+
+const { get } = useApi();
+const sessions = ref<SessionItem[]>([]);
+const loading = ref(true);
+const refreshing = ref(false);
+const search = ref('');
+const status = ref('all');
+const lastSyncedAt = ref<string | null>(null);
+let refreshTimer: number | null = null;
+
+const statusOptions = [
+    'uploaded',
+    'editing',
+    'ready_print',
+    'queued_print',
+    'failed_print',
+    'printed',
+];
+
+const statusLabels: Record<string, string> = {
+    all: 'All',
+    uploaded: 'Uploaded',
+    editing: 'Editing',
+    ready_print: 'Ready',
+    queued_print: 'Queued',
+    failed_print: 'Failed',
+    printed: 'Printed',
+};
+
+const filteredSessions = computed(() => {
+    return sessions.value.filter((item) => {
+        const haystack =
+            `${item.id} ${item.session_code ?? ''} ${item.device_name ?? ''} ${item.device_code ?? ''}`.toLowerCase();
+
+        const matchSearch =
+            !search.value || haystack.includes(search.value.toLowerCase());
+
+        const matchStatus =
+            status.value === 'all' ||
+            (item.status ?? '').toLowerCase() === status.value;
+
+        return matchSearch && matchStatus;
+    });
+});
+
+const statusSummary = computed(() => {
+    return ['all', ...statusOptions].map((statusOption) => ({
+        status: statusOption,
+        label: statusLabels[statusOption] ?? statusOption,
+        count:
+            statusOption === 'all'
+                ? sessions.value.length
+                : sessions.value.filter((item) => item.status === statusOption)
+                      .length,
+    }));
+});
+
+const loadSessions = async (silent = false): Promise<void> => {
+    if (silent) {
+        refreshing.value = true;
+    } else {
+        loading.value = true;
+    }
+
+    try {
+        const response = await get<{ data?: SessionItem[] } | SessionItem[]>(
+            sessionIndex(),
+        );
+
+        sessions.value = Array.isArray(response)
+            ? response
+            : (response.data ?? []);
+
+        lastSyncedAt.value = new Date().toLocaleTimeString('id-ID');
+    } finally {
+        if (silent) {
+            refreshing.value = false;
+        } else {
+            loading.value = false;
+        }
+    }
+};
+
+onMounted(async () => {
+    await loadSessions();
+
+    refreshTimer = window.setInterval(() => {
+        void loadSessions(true);
+    }, 30000);
+});
+
+onBeforeUnmount(() => {
+    if (refreshTimer !== null) {
+        window.clearInterval(refreshTimer);
+    }
+});
+</script>
+
+<template>
+    <AppLayout
+        title="Sessions"
+        subtitle="Lihat hasil session device dan lanjutkan ke edit flow."
+    >
+        <div class="mb-4 flex flex-wrap items-center gap-2">
+            <button
+                v-for="item in statusSummary"
+                :key="item.status"
+                type="button"
+                class="rounded-lg border px-3 py-2 text-xs font-semibold transition"
+                :class="
+                    status === item.status
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                "
+                @click="status = item.status"
+            >
+                {{ item.label }}: {{ item.count }}
+            </button>
+        </div>
+
+        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div
+                class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+            >
+                <div class="flex flex-1 flex-col gap-3 md:flex-row">
+                    <input
+                        v-model="search"
+                        type="text"
+                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm md:max-w-sm"
+                        placeholder="Cari session / device"
+                    />
+
+                    <select
+                        v-model="status"
+                        class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-48"
+                    >
+                        <option value="all">All Status</option>
+                        <option
+                            v-for="option in statusOptions"
+                            :key="option"
+                            :value="option"
+                        >
+                            {{ option }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-3 text-xs text-slate-500">
+                    <span>Synced: {{ lastSyncedAt ?? '-' }}</span>
+                    <button
+                        type="button"
+                        class="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100"
+                        :disabled="refreshing"
+                        @click="loadSessions(true)"
+                    >
+                        {{ refreshing ? 'Refreshing...' : 'Refresh' }}
+                    </button>
+                </div>
+            </div>
+
+            <div v-if="loading" class="text-sm text-slate-500">
+                Loading sessions...
+            </div>
+
+            <div v-else-if="!filteredSessions.length">
+                <EmptyState
+                    title="Session tidak ditemukan"
+                    message="Coba ganti kata kunci atau filter status."
+                />
+            </div>
+
+            <div v-else class="overflow-x-auto">
+                <div class="mb-3 text-xs text-slate-500">
+                    Menampilkan {{ filteredSessions.length }} dari
+                    {{ sessions.length }} sesi
+                </div>
+                <table class="min-w-full text-left text-sm">
+                    <thead class="border-b border-slate-200 text-slate-500">
+                        <tr>
+                            <th class="px-4 py-3">ID</th>
+                            <th class="px-4 py-3">Thumbnail</th>
+                            <th class="px-4 py-3">Device</th>
+                            <th class="px-4 py-3">Status</th>
+                            <th class="px-4 py-3">Created</th>
+                            <th class="px-4 py-3" />
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr
+                            v-for="session in filteredSessions"
+                            :key="session.id"
+                            class="border-b border-slate-100"
+                        >
+                            <td class="px-4 py-3 font-medium">
+                                #{{ session.id }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <img
+                                    v-if="session.thumbnail_url"
+                                    :src="session.thumbnail_url"
+                                    alt="thumbnail"
+                                    class="h-14 w-14 rounded-lg object-cover"
+                                />
+
+                                <div
+                                    v-else
+                                    class="flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400"
+                                >
+                                    No Image
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-3">
+                                <div class="font-medium text-slate-800">
+                                    {{ session.device_name ?? '-' }}
+                                </div>
+                                <div class="text-xs text-slate-500">
+                                    {{
+                                        session.session_code ??
+                                        session.name ??
+                                        'Session'
+                                    }}
+                                </div>
+                            </td>
+
+                            <td class="px-4 py-3">
+                                <StatusBadge
+                                    :status="session.status ?? 'unknown'"
+                                />
+                            </td>
+
+                            <td class="px-4 py-3 text-slate-500">
+                                {{ session.created_at ?? '-' }}
+                            </td>
+
+                            <td class="px-4 py-3 text-right">
+                                <Link
+                                    :href="sessionRoutes.show.url(session.id)"
+                                    class="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                >
+                                    Detail
+                                </Link>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </AppLayout>
+</template>
