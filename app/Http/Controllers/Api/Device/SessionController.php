@@ -54,12 +54,16 @@ class SessionController extends Controller
 
         $isManualPayment = ! $isBypassVoucher
             && (($validated['payment_method'] ?? null) === 'manual');
+        $normalizedWhatsapp = isset($validated['customer_whatsapp'])
+            ? $this->normalizeWhatsapp($validated['customer_whatsapp'])
+            : null;
 
         $session = DB::transaction(function () use (
             $device,
             $voucher,
             $isBypassVoucher,
             $isManualPayment,
+            $normalizedWhatsapp,
             $validated
         ) {
             $session = PhotoSession::create([
@@ -75,7 +79,7 @@ class SessionController extends Controller
                     ? 'voucher'
                     : ($validated['payment_method'] ?? null),
                 'payment_ref' => $isBypassVoucher ? $voucher?->voucher_code : null,
-                'customer_whatsapp' => $validated['customer_whatsapp'] ?? null,
+                'customer_whatsapp' => $normalizedWhatsapp,
                 'additional_print_count' => (int) ($validated['additional_print_count'] ?? 0),
                 'manual_payment_status' => $isManualPayment ? 'pending_approval' : null,
                 'paid_at' => $isBypassVoucher ? now() : null,
@@ -472,6 +476,21 @@ class SessionController extends Controller
         }
 
         return in_array($voucherType, ['skip', 'free', 'override'], true);
+    }
+
+    private function normalizeWhatsapp(string $input): string
+    {
+        $digits = preg_replace('/\D+/', '', trim($input)) ?? '';
+
+        if ($digits === '') {
+            return $digits;
+        }
+
+        if (str_starts_with($digits, '0')) {
+            return '62'.substr($digits, 1);
+        }
+
+        return $digits;
     }
 
     private function isSessionPaymentUnlocked(PhotoSession $session): bool

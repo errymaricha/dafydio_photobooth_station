@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\Device\AuthController;
 use App\Http\Controllers\Api\Device\MasterDataController;
 use App\Http\Controllers\Api\Device\SessionController as DeviceSessionController;
 use App\Http\Controllers\Api\Device\UploadController;
+use App\Http\Controllers\Api\Editor\CustomerCloudAccountController;
 use App\Http\Controllers\Api\Editor\DashboardController;
 use App\Http\Controllers\Api\Editor\EditJobController;
 use App\Http\Controllers\Api\Editor\PricingController;
@@ -81,6 +82,8 @@ Route::prefix('editor')
         Route::delete('/templates/{template}/slots/{slotIndex}', [TemplateController::class, 'destroySlot']);
 
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::post('/customers/cloud-account', [CustomerCloudAccountController::class, 'upsert']);
+        Route::get('/customers/{customerWhatsapp}/history', [CustomerCloudAccountController::class, 'history']);
         Route::get('/pricing', [PricingController::class, 'index']);
         Route::patch('/pricing', [PricingController::class, 'update']);
         Route::get('/voucher-library', [VoucherController::class, 'libraryIndex']);
