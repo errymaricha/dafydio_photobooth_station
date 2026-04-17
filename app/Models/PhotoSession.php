@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -12,6 +12,7 @@ class PhotoSession extends Model
     use HasUuids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -29,6 +30,12 @@ class PhotoSession extends Model
         'payment_status',
         'payment_method',
         'payment_ref',
+        'customer_whatsapp',
+        'additional_print_count',
+        'manual_payment_status',
+        'manual_payment_reviewed_at',
+        'manual_payment_reviewed_by',
+        'manual_payment_notes',
         'paid_at',
         'captured_at',
         'completed_at',
@@ -41,6 +48,7 @@ class PhotoSession extends Model
             'captured_at' => 'datetime',
             'completed_at' => 'datetime',
             'paid_at' => 'datetime',
+            'manual_payment_reviewed_at' => 'datetime',
         ];
     }
 
@@ -57,6 +65,11 @@ class PhotoSession extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function manualPaymentReviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manual_payment_reviewed_by');
     }
 
     public function photos(): HasMany

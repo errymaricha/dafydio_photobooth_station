@@ -5,6 +5,7 @@ import { dashboard } from '@/routes';
 import * as printLogs from '@/routes/print-logs';
 import * as printOrders from '@/routes/print-orders';
 import * as printQueue from '@/routes/print-queue';
+import * as pricing from '@/routes/pricing';
 import * as printers from '@/routes/printers';
 import * as sessions from '@/routes/sessions';
 import * as templates from '@/routes/templates';
@@ -20,6 +21,7 @@ const items = [
     { label: 'Printers', href: printers.index.url() },
     { label: 'Print Orders', href: printOrders.index.url() },
     { label: 'Print Logs', href: printLogs.index.url() },
+    { label: 'Pricing', href: pricing.index.url() },
     { label: 'Vouchers', href: vouchers.index.url() },
 ];
 

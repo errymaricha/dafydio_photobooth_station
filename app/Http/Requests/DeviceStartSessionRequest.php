@@ -19,6 +19,9 @@ class DeviceStartSessionRequest extends FormRequest
     {
         return [
             'voucher_code' => ['nullable', 'string', 'max:120'],
+            'payment_method' => ['nullable', 'string', 'in:manual,qris,cash'],
+            'customer_whatsapp' => ['nullable', 'string', 'max:30', 'regex:/^\+?[0-9]{8,16}$/'],
+            'additional_print_count' => ['nullable', 'integer', 'min:0', 'max:50'],
         ];
     }
 }

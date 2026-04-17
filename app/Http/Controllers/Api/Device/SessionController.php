@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 
 class SessionController extends Controller
 {
-    private const DEVICE_CONTRACT_VERSION = '2026-04-15';
+    private const DEVICE_CONTRACT_VERSION = '2026-04-17';
 
     /**
      * Start a new capture session for the authenticated device.
@@ -52,18 +52,32 @@ class SessionController extends Controller
 
         $isBypassVoucher = $this->isBypassVoucherType($voucher?->voucher_type);
 
-        $session = DB::transaction(function () use ($device, $voucher, $isBypassVoucher) {
+        $isManualPayment = ! $isBypassVoucher
+            && (($validated['payment_method'] ?? null) === 'manual');
+
+        $session = DB::transaction(function () use (
+            $device,
+            $voucher,
+            $isBypassVoucher,
+            $isManualPayment,
+            $validated
+        ) {
             $session = PhotoSession::create([
                 'id' => Str::uuid(),
-                'session_code' => 'SES-' . strtoupper(Str::random(8)),
+                'session_code' => 'SES-'.strtoupper(Str::random(8)),
                 'station_id' => $device->station_id,
                 'device_id' => $device->id,
                 'session_type' => 'photobooth',
                 'source_type' => 'android',
                 'status' => 'created',
                 'payment_status' => $isBypassVoucher ? 'paid' : 'pending',
-                'payment_method' => $isBypassVoucher ? 'voucher' : null,
+                'payment_method' => $isBypassVoucher
+                    ? 'voucher'
+                    : ($validated['payment_method'] ?? null),
                 'payment_ref' => $isBypassVoucher ? $voucher?->voucher_code : null,
+                'customer_whatsapp' => $validated['customer_whatsapp'] ?? null,
+                'additional_print_count' => (int) ($validated['additional_print_count'] ?? 0),
+                'manual_payment_status' => $isManualPayment ? 'pending_approval' : null,
                 'paid_at' => $isBypassVoucher ? now() : null,
             ]);
 
@@ -99,6 +113,20 @@ class SessionController extends Controller
                 );
             }
 
+            if ($isManualPayment) {
+                $this->logSessionEvent(
+                    sessionId: $session->id,
+                    eventType: 'manual_payment_requested',
+                    actorType: 'device',
+                    actorId: (string) $device->id,
+                    payload: [
+                        'source' => 'device_pre_payment',
+                        'customer_whatsapp' => $session->customer_whatsapp,
+                        'additional_print_count' => $session->additional_print_count,
+                    ],
+                );
+            }
+
             return $session;
         });
 
@@ -113,6 +141,10 @@ class SessionController extends Controller
             'payment_status' => $session->payment_status,
             'payment_required' => $session->payment_status !== 'paid',
             'unlock_photo' => $session->payment_status === 'paid',
+            'manual_payment_requested' => $session->payment_method === 'manual',
+            'manual_payment_status' => $session->manual_payment_status,
+            'customer_whatsapp' => $session->customer_whatsapp,
+            'additional_print_count' => (int) $session->additional_print_count,
             'voucher_applied' => (bool) $voucher,
             'voucher_code' => $voucher?->voucher_code,
             'voucher_type' => $voucher?->voucher_type,
@@ -250,6 +282,10 @@ class SessionController extends Controller
             'payment_status' => $session->payment_status,
             'payment_required' => $paymentRequired,
             'payment_unlocked' => ! $paymentRequired,
+            'manual_payment_requested' => $session->payment_method === 'manual',
+            'manual_payment_status' => $session->manual_payment_status,
+            'customer_whatsapp' => $session->customer_whatsapp,
+            'additional_print_count' => (int) $session->additional_print_count,
             'skip_reason' => $canSkipPayment ? 'voucher_skip' : null,
             'voucher_code' => $voucher?->voucher_code,
             'voucher_type' => $voucher?->voucher_type,
@@ -297,6 +333,14 @@ class SessionController extends Controller
         }
 
         $validated = $request->validated();
+
+        if ($session->payment_method === 'manual'
+            && $session->payment_status !== 'paid'
+        ) {
+            return response()->json([
+                'message' => 'Manual payment session must be approved by editor.',
+            ], 422);
+        }
 
         $session->update([
             'payment_status' => 'paid',
@@ -369,7 +413,7 @@ class SessionController extends Controller
     {
         $device = $request->user();
 
-        if (!$device) {
+        if (! $device) {
             return response()->json([
                 'message' => 'Unauthenticated device.',
             ], 401);

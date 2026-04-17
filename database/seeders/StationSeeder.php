@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Station;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
-use App\Models\Station;
 
 class StationSeeder extends Seeder
 {
@@ -22,6 +22,9 @@ class StationSeeder extends Seeder
             'station_name' => 'Main Booth',
             'location_name' => 'Default Location',
             'local_ip' => '192.168.1.10',
+            'photobooth_price' => 35000,
+            'additional_print_price' => 5000,
+            'currency_code' => 'IDR',
             'status' => 'online',
         ]);
         $station->save();

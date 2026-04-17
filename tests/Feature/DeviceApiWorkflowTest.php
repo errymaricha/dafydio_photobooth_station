@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\AndroidDevice;
 use App\Models\PhotoSession;
+use App\Models\Role;
 use App\Models\SessionVoucher;
-use App\Models\SessionPhoto;
 use App\Models\Station;
+use App\Models\Template;
+use App\Models\TemplateSlot;
+use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -165,6 +168,74 @@ class DeviceApiWorkflowTest extends TestCase
             'capture_index' => 1,
         ])
             ->assertCreated();
+    }
+
+    public function test_manual_payment_session_requires_editor_approval_to_unlock(): void
+    {
+        $device = $this->createDevice();
+        $editor = $this->createEditorUser();
+
+        Sanctum::actingAs($device);
+
+        $createResponse = $this->postJson('/api/device/sessions', [
+            'payment_method' => 'manual',
+            'customer_whatsapp' => '6281234567890',
+            'additional_print_count' => 2,
+        ]);
+
+        $createResponse->assertCreated()
+            ->assertJsonPath('payment_status', 'pending')
+            ->assertJsonPath('payment_required', true)
+            ->assertJsonPath('unlock_photo', false)
+            ->assertJsonPath('manual_payment_requested', true)
+            ->assertJsonPath('manual_payment_status', 'pending_approval')
+            ->assertJsonPath('customer_whatsapp', '6281234567890')
+            ->assertJsonPath('additional_print_count', 2);
+
+        $sessionId = (string) $createResponse->json('session_id');
+
+        $this->postJson("/api/device/sessions/{$sessionId}/confirm-payment", [
+            'payment_ref' => 'DEVICE-SHOULD-BLOCK',
+            'payment_method' => 'manual',
+        ])
+            ->assertStatus(422)
+            ->assertJsonPath('message', 'Manual payment session must be approved by editor.');
+
+        $this->getJson("/api/device/sessions/{$sessionId}/payment-check")
+            ->assertOk()
+            ->assertJsonPath('payment_required', true)
+            ->assertJsonPath('manual_payment_status', 'pending_approval');
+
+        Sanctum::actingAs($editor);
+
+        $this->postJson("/api/editor/sessions/{$sessionId}/manual-payment/approve", [
+            'payment_ref' => 'MANUAL-APPROVED-001',
+            'notes' => 'Cash confirmed by operator.',
+        ])
+            ->assertOk()
+            ->assertJsonPath('message', 'Manual payment approved.')
+            ->assertJsonPath('payment_status', 'paid')
+            ->assertJsonPath('manual_payment_status', 'approved')
+            ->assertJsonPath('unlock_photo', true)
+            ->assertJsonPath('payment_ref', 'MANUAL-APPROVED-001');
+
+        Sanctum::actingAs($device);
+
+        $this->getJson("/api/device/sessions/{$sessionId}/payment-check")
+            ->assertOk()
+            ->assertJsonPath('payment_required', false)
+            ->assertJsonPath('payment_status', 'paid')
+            ->assertJsonPath('manual_payment_status', 'approved');
+
+        $this->assertDatabaseHas('session_events', [
+            'session_id' => $sessionId,
+            'event_type' => 'manual_payment_requested',
+        ]);
+
+        $this->assertDatabaseHas('session_events', [
+            'session_id' => $sessionId,
+            'event_type' => 'manual_payment_approved',
+        ]);
     }
 
     public function test_device_can_verify_valid_voucher_before_payment(): void
@@ -497,73 +568,73 @@ class DeviceApiWorkflowTest extends TestCase
             'subtotal_amount' => 100000,
         ]);
         $verify->assertOk()
-            ->assertJsonPath('contract_version', '2026-04-15')
+            ->assertJsonPath('contract_version', '2026-04-17')
             ->assertJsonStructure([
-            'contract_version',
-            'valid',
-            'unlock_photo',
-            'payment_required',
-            'message',
-            'voucher_code',
-            'voucher_type',
-            'voucher' => ['code', 'type', 'voucher_code', 'voucher_type'],
-            'quote' => ['subtotal_amount', 'discount_amount', 'total_due', 'payment_required', 'unlock_photo', 'discount_reason'],
-        ]);
+                'contract_version',
+                'valid',
+                'unlock_photo',
+                'payment_required',
+                'message',
+                'voucher_code',
+                'voucher_type',
+                'voucher' => ['code', 'type', 'voucher_code', 'voucher_type'],
+                'quote' => ['subtotal_amount', 'discount_amount', 'total_due', 'payment_required', 'unlock_photo', 'discount_reason'],
+            ]);
 
         $quote = $this->postJson('/api/device/payment-quote', [
             'subtotal_amount' => 100000,
             'voucher_code' => 'CONTRACT-PROMO-10',
         ]);
         $quote->assertOk()
-            ->assertJsonPath('contract_version', '2026-04-15')
+            ->assertJsonPath('contract_version', '2026-04-17')
             ->assertJsonStructure([
-            'contract_version',
-            'message',
-            'voucher_code',
-            'voucher_type',
-            'voucher' => ['code', 'type', 'voucher_code', 'voucher_type'],
-            'quote' => ['subtotal_amount', 'discount_amount', 'total_due', 'payment_required', 'unlock_photo', 'discount_reason'],
-        ]);
+                'contract_version',
+                'message',
+                'voucher_code',
+                'voucher_type',
+                'voucher' => ['code', 'type', 'voucher_code', 'voucher_type'],
+                'quote' => ['subtotal_amount', 'discount_amount', 'total_due', 'payment_required', 'unlock_photo', 'discount_reason'],
+            ]);
 
         $create = $this->postJson('/api/device/sessions', [
             'voucher_code' => 'CONTRACT-PROMO-10',
         ]);
         $create->assertCreated()
-            ->assertJsonPath('contract_version', '2026-04-15')
+            ->assertJsonPath('contract_version', '2026-04-17')
             ->assertJsonStructure([
-            'contract_version',
-            'message',
-            'session_id',
-            'session_code',
-            'station_id',
-            'device_id',
-            'status',
-            'payment_status',
-            'payment_required',
-            'unlock_photo',
-            'voucher_applied',
-            'voucher_code',
-            'voucher_type',
-            'voucher',
-        ]);
+                'contract_version',
+                'message',
+                'session_id',
+                'session_code',
+                'station_id',
+                'device_id',
+                'status',
+                'payment_status',
+                'payment_required',
+                'unlock_photo',
+                'voucher_applied',
+                'voucher_code',
+                'voucher_type',
+                'voucher',
+            ]);
 
         $sessionId = (string) $create->json('session_id');
 
         $check = $this->getJson("/api/device/sessions/{$sessionId}/payment-check");
         $check->assertOk()
-            ->assertJsonPath('contract_version', '2026-04-15')
+            ->assertJsonPath('contract_version', '2026-04-17')
             ->assertJsonStructure([
-            'contract_version',
-            'session_id',
-            'session_code',
-            'payment_status',
-            'payment_required',
-            'payment_unlocked',
-            'skip_reason',
-            'voucher_code',
-            'voucher_type',
-            'voucher' => ['id', 'voucher_code', 'voucher_type', 'status'],
-        ]);
+                'contract_version',
+                'session_id',
+                'session_code',
+                'payment_status',
+                'payment_required',
+                'payment_unlocked',
+                'skip_reason',
+                'voucher_code',
+                'voucher_type',
+                'voucher' => ['id', 'voucher_code', 'voucher_type', 'status'],
+            ]);
 
         $confirm = $this->postJson("/api/device/sessions/{$sessionId}/confirm-payment", [
             'payment_ref' => 'CONTRACT-PAY-001',
@@ -572,36 +643,115 @@ class DeviceApiWorkflowTest extends TestCase
             'currency' => 'IDR',
         ]);
         $confirm->assertOk()
-            ->assertJsonPath('contract_version', '2026-04-15')
+            ->assertJsonPath('contract_version', '2026-04-17')
             ->assertJsonStructure([
-            'contract_version',
-            'message',
-            'session_id',
-            'session_code',
-            'payment_status',
-            'payment_required',
-            'unlock_photo',
-            'payment_ref',
-            'payment_method',
-            'paid_at',
+                'contract_version',
+                'message',
+                'session_id',
+                'session_code',
+                'payment_status',
+                'payment_required',
+                'unlock_photo',
+                'payment_ref',
+                'payment_method',
+                'paid_at',
+            ]);
+    }
+
+    public function test_device_can_sync_master_data_with_pricing_and_templates(): void
+    {
+        $device = $this->createDevice();
+
+        $device->station()->update([
+            'photobooth_price' => 45000,
+            'additional_print_price' => 7000,
+            'currency_code' => 'IDR',
         ]);
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-SYNC-001',
+            'template_name' => 'Sync Template',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'config_json' => ['background_color' => '#ffffff'],
+            'status' => 'active',
+        ]);
+
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $template->id,
+            'slot_index' => 1,
+            'x' => 0,
+            'y' => 0,
+            'width' => 1200,
+            'height' => 900,
+            'rotation' => 0,
+            'border_radius' => 0,
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $this->getJson('/api/device/master-data')
+            ->assertOk()
+            ->assertJsonPath('contract_version', '2026-04-17')
+            ->assertJsonPath('pricing.photobooth_price', fn ($value) => (float) $value === 45000.0)
+            ->assertJsonPath('pricing.additional_print_price', fn ($value) => (float) $value === 7000.0)
+            ->assertJsonPath('pricing.currency_code', 'IDR')
+            ->assertJsonPath('templates.0.template_code', 'TPL-SYNC-001')
+            ->assertJsonPath('templates.0.slots.0.slot_index', 1)
+            ->assertJsonStructure([
+                'contract_version',
+                'station' => [
+                    'id',
+                    'station_code',
+                    'station_name',
+                    'location_name',
+                    'timezone',
+                    'local_ip',
+                    'status',
+                ],
+                'pricing' => [
+                    'photobooth_price',
+                    'additional_print_price',
+                    'currency_code',
+                ],
+                'templates' => [[
+                    'id',
+                    'template_code',
+                    'template_name',
+                    'category',
+                    'paper_size',
+                    'canvas_width',
+                    'canvas_height',
+                    'preview_url',
+                    'overlay_url',
+                    'config',
+                    'slots',
+                ]],
+            ]);
     }
 
     protected function createDevice(): AndroidDevice
     {
         $station = Station::create([
             'id' => (string) Str::uuid(),
-            'station_code' => 'ST-' . Str::upper(Str::random(6)),
+            'station_code' => 'ST-'.Str::upper(Str::random(6)),
             'station_name' => 'Main Station',
             'location_name' => 'Studio',
             'timezone' => 'Asia/Jakarta',
+            'photobooth_price' => 35000,
+            'additional_print_price' => 5000,
+            'currency_code' => 'IDR',
             'status' => 'online',
         ]);
 
         return AndroidDevice::create([
             'id' => (string) Str::uuid(),
             'station_id' => $station->id,
-            'device_code' => 'DV-' . Str::upper(Str::random(6)),
+            'device_code' => 'DV-'.Str::upper(Str::random(6)),
             'device_name' => 'Capture Device',
             'api_key_hash' => Hash::make('top-secret-device-key'),
             'status' => 'active',
@@ -612,7 +762,7 @@ class DeviceApiWorkflowTest extends TestCase
     {
         return PhotoSession::create([
             'id' => (string) Str::uuid(),
-            'session_code' => 'SES-' . Str::upper(Str::random(8)),
+            'session_code' => 'SES-'.Str::upper(Str::random(8)),
             'station_id' => $device->station_id,
             'device_id' => $device->id,
             'session_type' => 'photobooth',
@@ -632,8 +782,7 @@ class DeviceApiWorkflowTest extends TestCase
         ?int $maxUsage = 100,
         ?int $usedCount = 0,
         ?float $minPurchaseAmount = null,
-    ): void
-    {
+    ): void {
         DB::table('vouchers')->insert([
             'id' => (string) Str::uuid(),
             'voucher_code' => $code,
@@ -651,5 +800,18 @@ class DeviceApiWorkflowTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    protected function createEditorUser(): User
+    {
+        $user = User::factory()->create();
+        $role = Role::create([
+            'code' => 'admin',
+            'name' => 'Administrator',
+        ]);
+
+        $user->roles()->attach($role->id);
+
+        return $user;
     }
 }

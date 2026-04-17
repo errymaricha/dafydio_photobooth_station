@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/printers', fn () => Inertia::render('printers/Index'))->name('printers.index');
     Route::get('/printers/{id}', fn (string $id) => Inertia::render('printers/Show', ['printerId' => $id]))->name('printers.show');
     Route::get('/print-logs', fn () => Inertia::render('printlogs/Index'))->name('print-logs.index');
+    Route::get('/pricing', fn () => Inertia::render('pricing/Index'))->name('pricing.index');
     Route::get('/vouchers', fn () => Inertia::render('vouchers/Index'))->name('vouchers.index');
 });
 

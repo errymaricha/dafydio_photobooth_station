@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Station extends Model
@@ -11,6 +11,7 @@ class Station extends Model
     use HasUuids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
@@ -20,6 +21,9 @@ class Station extends Model
         'local_ip',
         'public_url',
         'timezone',
+        'photobooth_price',
+        'additional_print_price',
+        'currency_code',
         'status',
         'last_seen_at',
     ];
@@ -28,6 +32,8 @@ class Station extends Model
     {
         return [
             'last_seen_at' => 'datetime',
+            'photobooth_price' => 'decimal:2',
+            'additional_print_price' => 'decimal:2',
         ];
     }
 
