@@ -351,13 +351,16 @@ class EditorSessionWorkflowTest extends TestCase
             ->assertJsonPath('session_code', $session->session_code)
             ->assertJsonPath('device_name', 'Capture Device')
             ->assertJsonPath('station_code', $session->station?->station_code)
+            ->assertJsonPath('payment_status', 'pending')
+            ->assertJsonPath('payment_method', null)
+            ->assertJsonPath('manual_payment_status', null)
             ->assertJsonCount(2, 'photos')
             ->assertJsonPath('photos.0.capture_index', 1)
-            ->assertJsonPath('photos.0.url', url('storage/tests/session-' . $session->id . '-1-thumb.png'))
+            ->assertJsonPath('photos.0.url', url('storage/tests/session-'.$session->id.'-1-thumb.png'))
             ->assertJsonPath('latest_edit_job.template.id', $template->id)
             ->assertJsonPath('latest_edit_job.status', 'completed')
             ->assertJsonPath('active_rendered_output.id', $renderedOutput->id)
-            ->assertJsonPath('active_rendered_output.file_url', url('storage/' . $renderedOutput->file->file_path))
+            ->assertJsonPath('active_rendered_output.file_url', url('storage/'.$renderedOutput->file->file_path))
             ->assertJsonPath('latest_print_order.printer.id', $printer->id)
             ->assertJsonPath('latest_print_order.status', 'created')
             ->assertJsonPath('latest_print_order.total_qty', 2);
@@ -379,8 +382,8 @@ class EditorSessionWorkflowTest extends TestCase
     protected function createTemplate(int $slotCount, User $createdBy): Template
     {
         $template = Template::create([
-            'template_code' => 'TPL-' . Str::upper(Str::random(6)),
-            'template_name' => 'Template ' . Str::upper(Str::random(4)),
+            'template_code' => 'TPL-'.Str::upper(Str::random(6)),
+            'template_name' => 'Template '.Str::upper(Str::random(4)),
             'category' => 'photostrip',
             'paper_size' => '4R',
             'canvas_width' => 1200,
@@ -412,7 +415,7 @@ class EditorSessionWorkflowTest extends TestCase
     {
         return Printer::create([
             'station_id' => $stationId,
-            'printer_code' => 'PR-' . Str::upper(Str::random(6)),
+            'printer_code' => 'PR-'.Str::upper(Str::random(6)),
             'printer_name' => 'Main Printer',
             'printer_type' => 'inkjet',
             'connection_type' => 'network',
@@ -428,7 +431,7 @@ class EditorSessionWorkflowTest extends TestCase
     protected function createSessionWithPhotos(int $photoCount, string $storageDisk = 'public'): PhotoSession
     {
         $station = Station::create([
-            'station_code' => 'ST-' . Str::upper(Str::random(6)),
+            'station_code' => 'ST-'.Str::upper(Str::random(6)),
             'station_name' => 'Main Station',
             'location_name' => 'Studio',
             'timezone' => 'Asia/Jakarta',
@@ -437,14 +440,14 @@ class EditorSessionWorkflowTest extends TestCase
 
         $device = AndroidDevice::create([
             'station_id' => $station->id,
-            'device_code' => 'DV-' . Str::upper(Str::random(6)),
+            'device_code' => 'DV-'.Str::upper(Str::random(6)),
             'device_name' => 'Capture Device',
             'api_key_hash' => hash('sha256', Str::random(40)),
             'status' => 'active',
         ]);
 
         $session = PhotoSession::create([
-            'session_code' => 'SES-' . Str::upper(Str::random(8)),
+            'session_code' => 'SES-'.Str::upper(Str::random(8)),
             'station_id' => $station->id,
             'device_id' => $device->id,
             'session_type' => 'photobooth',

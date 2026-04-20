@@ -2,10 +2,11 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { dashboard } from '@/routes';
+import * as clients from '@/routes/clients';
+import * as pricing from '@/routes/pricing';
 import * as printLogs from '@/routes/print-logs';
 import * as printOrders from '@/routes/print-orders';
 import * as printQueue from '@/routes/print-queue';
-import * as pricing from '@/routes/pricing';
 import * as printers from '@/routes/printers';
 import * as sessions from '@/routes/sessions';
 import * as templates from '@/routes/templates';
@@ -16,6 +17,7 @@ const page = usePage();
 const items = [
     { label: 'Dashboard', href: dashboard.url() },
     { label: 'Sessions', href: sessions.index.url() },
+    { label: 'Daftar Client', href: clients.index.url() },
     { label: 'Templates', href: templates.index.url() },
     { label: 'Print Queue', href: printQueue.index.url() },
     { label: 'Printers', href: printers.index.url() },

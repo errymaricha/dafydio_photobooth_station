@@ -5,7 +5,7 @@ import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { store } from '@/routes/password/confirm';
+import * as passwordConfirm from '@/routes/password/confirm';
 
 defineOptions({
     layout: {
@@ -20,7 +20,7 @@ defineOptions({
     <Head title="Confirm password" />
 
     <Form
-        v-bind="store.form()"
+        v-bind="passwordConfirm.store.form()"
         reset-on-success
         v-slot="{ errors, processing }"
     >

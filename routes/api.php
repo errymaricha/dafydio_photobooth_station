@@ -82,8 +82,10 @@ Route::prefix('editor')
         Route::delete('/templates/{template}/slots/{slotIndex}', [TemplateController::class, 'destroySlot']);
 
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/customers', [CustomerCloudAccountController::class, 'index']);
         Route::post('/customers/cloud-account', [CustomerCloudAccountController::class, 'upsert']);
         Route::get('/customers/{customerWhatsapp}/history', [CustomerCloudAccountController::class, 'history']);
+        Route::get('/customers/{customerWhatsapp}/cloud-sync', [CustomerCloudAccountController::class, 'cloudSync']);
         Route::get('/pricing', [PricingController::class, 'index']);
         Route::patch('/pricing', [PricingController::class, 'update']);
         Route::get('/voucher-library', [VoucherController::class, 'libraryIndex']);

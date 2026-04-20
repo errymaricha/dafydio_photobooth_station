@@ -15,6 +15,10 @@ import {
     faceFit as faceFitSessionPhoto,
 } from '@/actions/App/Http/Controllers/Api/Editor/SessionController';
 import {
+    approve as approveSessionManualPayment,
+    reject as rejectSessionManualPayment,
+} from '@/actions/App/Http/Controllers/Api/Editor/SessionManualPaymentController';
+import {
     store as storeSessionVoucher,
     revoke as revokeSessionVoucher,
 } from '@/actions/App/Http/Controllers/Api/Editor/SessionVoucherController';
@@ -52,6 +56,16 @@ type SessionDetail = {
     device_name?: string;
     station_code?: string;
     status?: string;
+    payment_status?: string | null;
+    payment_method?: string | null;
+    payment_ref?: string | null;
+    paid_at?: string | null;
+    customer_whatsapp?: string | null;
+    additional_print_count?: number | null;
+    manual_payment_status?: string | null;
+    manual_payment_reviewed_at?: string | null;
+    manual_payment_reviewer_name?: string | null;
+    manual_payment_notes?: string | null;
     photos: PhotoItem[];
     latest_edit_job?: {
         id: string;
@@ -191,6 +205,9 @@ const voucherNotes = ref('');
 const voucherSubmitting = ref(false);
 const voucherRevokingId = ref<string | null>(null);
 const voucherFilter = ref<'all' | 'applied' | 'revoked'>('all');
+const manualPaymentNotes = ref('');
+const manualPaymentRejectReason = ref('');
+const manualPaymentSubmittingAction = ref<'approve' | 'reject' | null>(null);
 
 const voucherTypeOptions = [
     { key: 'promo', label: 'Promo' },
@@ -317,6 +334,51 @@ const voucherSummary = computed(() => {
         applied,
         revoked,
     };
+});
+
+const isManualPaymentSession = computed(() => {
+    return (
+        (session.value?.payment_method ?? '').toLowerCase() === 'manual' ||
+        !!session.value?.manual_payment_status
+    );
+});
+
+const manualPaymentStatusLabel = computed(() => {
+    const status = (session.value?.manual_payment_status ?? '').toLowerCase();
+
+    if (status === 'pending_approval') {
+        return 'pending approval';
+    }
+
+    if (status === 'approved' || status === 'rejected') {
+        return status;
+    }
+
+    return 'not requested';
+});
+
+const canApproveManualPayment = computed(() => {
+    if (!isManualPaymentSession.value || !session.value) {
+        return false;
+    }
+
+    return (
+        session.value.payment_status !== 'paid' &&
+        session.value.manual_payment_status !== 'approved' &&
+        manualPaymentSubmittingAction.value === null
+    );
+});
+
+const canRejectManualPayment = computed(() => {
+    if (!isManualPaymentSession.value || !session.value) {
+        return false;
+    }
+
+    return (
+        session.value.payment_status !== 'paid' &&
+        session.value.manual_payment_status !== 'rejected' &&
+        manualPaymentSubmittingAction.value === null
+    );
 });
 
 const hasRenderedOutput = computed(() => {
@@ -683,7 +745,7 @@ async function requestFaceFit(photo: PhotoItem, slotIndex: number): Promise<void
         if (response.found && response.crop) {
             updateAssignment(slotIndex, { crop: response.crop });
         }
-    } catch (error: unknown) {
+    } catch {
         // Fallback to heuristic if face-fit fails.
     }
 }
@@ -812,6 +874,77 @@ function clearAllSlots(): void {
     errorMessage.value = null;
 }
 
+async function approveManualPayment(): Promise<void> {
+    if (!session.value || !canApproveManualPayment.value) {
+        return;
+    }
+
+    manualPaymentSubmittingAction.value = 'approve';
+    feedback.value = null;
+    errorMessage.value = null;
+
+    try {
+        const payload = {
+            notes: manualPaymentNotes.value.trim() || null,
+        };
+
+        const response = await post<{ message?: string }>(
+            approveSessionManualPayment(session.value.id),
+            payload,
+        );
+
+        manualPaymentRejectReason.value = '';
+        feedback.value = response.message ?? 'Manual payment disetujui.';
+
+        await loadData(false);
+    } catch (error: unknown) {
+        errorMessage.value = normalizeApiError(
+            error,
+            'Gagal menyetujui manual payment.',
+        );
+    } finally {
+        manualPaymentSubmittingAction.value = null;
+    }
+}
+
+async function rejectManualPayment(): Promise<void> {
+    if (!session.value || !canRejectManualPayment.value) {
+        return;
+    }
+
+    if (!manualPaymentRejectReason.value.trim()) {
+        errorMessage.value = 'Alasan reject wajib diisi.';
+        feedback.value = null;
+
+        return;
+    }
+
+    manualPaymentSubmittingAction.value = 'reject';
+    feedback.value = null;
+    errorMessage.value = null;
+
+    try {
+        const response = await post<{ message?: string }>(
+            rejectSessionManualPayment(session.value.id),
+            {
+                reason: manualPaymentRejectReason.value.trim(),
+            },
+        );
+
+        feedback.value = response.message ?? 'Manual payment ditolak.';
+        manualPaymentNotes.value = '';
+
+        await loadData(false);
+    } catch (error: unknown) {
+        errorMessage.value = normalizeApiError(
+            error,
+            'Gagal menolak manual payment.',
+        );
+    } finally {
+        manualPaymentSubmittingAction.value = null;
+    }
+}
+
 async function applyVoucher(): Promise<void> {
     if (!session.value) {
         return;
@@ -820,6 +953,7 @@ async function applyVoucher(): Promise<void> {
     if (!voucherCode.value.trim()) {
         errorMessage.value = 'Masukkan kode voucher terlebih dulu.';
         feedback.value = null;
+
         return;
     }
 
@@ -876,7 +1010,7 @@ async function revokeVoucher(voucherId: string): Promise<void> {
         const response = await post<{
             message?: string;
             voucher: SessionVoucherItem;
-        }>(revokeSessionVoucher(session.value.id, voucherId), {});
+        }>(revokeSessionVoucher({ session: session.value.id, voucher: voucherId }), {});
 
         const vouchers = session.value.vouchers ?? [];
         const index = vouchers.findIndex(
@@ -1334,6 +1468,8 @@ async function loadData(showLoader = true): Promise<void> {
         printers.value = printerData;
         renderedFileUrl.value =
             sessionData.active_rendered_output?.file_url ?? null;
+        manualPaymentNotes.value = sessionData.manual_payment_notes ?? '';
+        manualPaymentRejectReason.value = '';
         lastSyncedAt.value = new Date().toLocaleTimeString('id-ID');
 
         selectedTemplateId.value =
@@ -1708,6 +1844,136 @@ onMounted(loadData);
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div
+                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                >
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-slate-900">
+                                Manual Payment Approval
+                            </h3>
+                            <p class="text-sm text-slate-500">
+                                Approve atau reject request pembayaran manual dari Android.
+                            </p>
+                        </div>
+
+                        <div
+                            class="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"
+                        >
+                            <div>
+                                <div class="text-xs uppercase text-slate-500">Session</div>
+                                <div class="font-semibold text-slate-900">
+                                    {{ session.session_code }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase text-slate-500">Customer ID (WA)</div>
+                                <div class="font-semibold text-slate-900">
+                                    {{ session.customer_whatsapp ?? '-' }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase text-slate-500">Payment Status</div>
+                                <div class="mt-1">
+                                    <StatusBadge :status="session.payment_status ?? 'pending'" />
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs uppercase text-slate-500">Manual Status</div>
+                                <div class="mt-1">
+                                    <StatusBadge :status="manualPaymentStatusLabel" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="!isManualPaymentSession" class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                            Session ini belum request pembayaran manual dari Android.
+                        </div>
+
+                        <template v-else>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <label class="space-y-2">
+                                    <span class="text-sm font-medium text-slate-700">
+                                        Catatan Approve (opsional)
+                                    </span>
+                                    <textarea
+                                        v-model="manualPaymentNotes"
+                                        rows="2"
+                                        class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                        placeholder="Contoh: Sudah terima pembayaran tunai"
+                                    />
+                                </label>
+
+                                <label class="space-y-2">
+                                    <span class="text-sm font-medium text-slate-700">
+                                        Alasan Reject
+                                    </span>
+                                    <textarea
+                                        v-model="manualPaymentRejectReason"
+                                        rows="2"
+                                        class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                        placeholder="Wajib diisi jika reject"
+                                    />
+                                </label>
+                            </div>
+
+                            <div class="grid gap-2 sm:grid-cols-2">
+                                <button
+                                    type="button"
+                                    class="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                    :disabled="!canApproveManualPayment"
+                                    @click="approveManualPayment"
+                                >
+                                    {{
+                                        manualPaymentSubmittingAction === 'approve'
+                                            ? 'Approving...'
+                                            : 'Approve Manual Payment'
+                                    }}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                    :disabled="!canRejectManualPayment"
+                                    @click="rejectManualPayment"
+                                >
+                                    {{
+                                        manualPaymentSubmittingAction === 'reject'
+                                            ? 'Rejecting...'
+                                            : 'Reject Manual Payment'
+                                    }}
+                                </button>
+                            </div>
+
+                            <div
+                                v-if="
+                                    session.manual_payment_reviewed_at ||
+                                    session.manual_payment_reviewer_name ||
+                                    session.manual_payment_notes
+                                "
+                                class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600"
+                            >
+                                <div>
+                                    Reviewed:
+                                    {{
+                                        session.manual_payment_reviewed_at ?? '-'
+                                    }}
+                                </div>
+                                <div>
+                                    Reviewer:
+                                    {{
+                                        session.manual_payment_reviewer_name ?? '-'
+                                    }}
+                                </div>
+                                <div>
+                                    Notes:
+                                    {{ session.manual_payment_notes ?? '-' }}
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
 

@@ -9,11 +9,11 @@ use App\Models\PhotoSession;
 use App\Models\PrintOrder;
 use App\Models\RenderedOutput;
 use App\Models\SessionPhoto;
+use CV\CascadeClassifier;
+use CV\Rect;
+use CV\Size;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use CV\CascadeClassifier;
-use CV\Size;
-use CV\Rect;
 
 class SessionController extends Controller
 {
@@ -24,39 +24,39 @@ class SessionController extends Controller
             'device',
             'photos.thumbnailFile',
         ])
-        ->latest()
-        ->limit(20)
-        ->get()
-        ->map(function ($session) {
-            $thumbnailFile = $session->photos->first()?->thumbnailFile;
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(function ($session) {
+                $thumbnailFile = $session->photos->first()?->thumbnailFile;
 
-            return [
-                'id' => $session->id,
-                'session_code' => $session->session_code,
-                'name' => $session->session_code,
-                'status' => $session->status,
-                'captured_count' => $session->captured_count,
-                'created_at' => $session->created_at,
-                'captured_at' => $session->captured_at,
-                'completed_at' => $session->completed_at,
-                'device_name' => $session->device?->device_name,
-                'device_code' => $session->device?->device_code,
-                'station_code' => $session->station?->station_code,
+                return [
+                    'id' => $session->id,
+                    'session_code' => $session->session_code,
+                    'name' => $session->session_code,
+                    'status' => $session->status,
+                    'captured_count' => $session->captured_count,
+                    'created_at' => $session->created_at,
+                    'captured_at' => $session->captured_at,
+                    'completed_at' => $session->completed_at,
+                    'device_name' => $session->device?->device_name,
+                    'device_code' => $session->device?->device_code,
+                    'station_code' => $session->station?->station_code,
 
-                'station' => [
-                    'id' => $session->station?->id,
-                    'code' => $session->station?->station_code,
-                ],
+                    'station' => [
+                        'id' => $session->station?->id,
+                        'code' => $session->station?->station_code,
+                    ],
 
-                'device' => [
-                    'id' => $session->device?->id,
-                    'code' => $session->device?->device_code,
-                ],
+                    'device' => [
+                        'id' => $session->device?->id,
+                        'code' => $session->device?->device_code,
+                    ],
 
-                'thumbnail' => $thumbnailFile?->file_path,
-                'thumbnail_url' => $this->assetUrl($thumbnailFile),
-            ];
-        })->values();
+                    'thumbnail' => $thumbnailFile?->file_path,
+                    'thumbnail_url' => $this->assetUrl($thumbnailFile),
+                ];
+            })->values();
 
         return response()->json($sessions);
     }
@@ -66,6 +66,7 @@ class SessionController extends Controller
         $session->load([
             'station',
             'device',
+            'manualPaymentReviewer',
             'photos.originalFile',
             'photos.thumbnailFile',
             'editJobs.template',
@@ -96,6 +97,16 @@ class SessionController extends Controller
             'station_code' => $session->station?->station_code,
             'status' => $session->status,
             'captured_count' => $session->captured_count,
+            'payment_status' => $session->payment_status,
+            'payment_method' => $session->payment_method,
+            'payment_ref' => $session->payment_ref,
+            'paid_at' => $session->paid_at,
+            'customer_whatsapp' => $session->customer_whatsapp,
+            'additional_print_count' => $session->additional_print_count,
+            'manual_payment_status' => $session->manual_payment_status,
+            'manual_payment_reviewed_at' => $session->manual_payment_reviewed_at,
+            'manual_payment_notes' => $session->manual_payment_notes,
+            'manual_payment_reviewer_name' => $session->manualPaymentReviewer?->name,
             'created_at' => $session->created_at,
             'captured_at' => $session->captured_at,
             'completed_at' => $session->completed_at,
@@ -186,7 +197,7 @@ class SessionController extends Controller
         $photo->load('originalFile');
         $file = $photo->originalFile;
 
-        if (!$file) {
+        if (! $file) {
             return response()->json([
                 'found' => false,
             ]);
@@ -194,7 +205,7 @@ class SessionController extends Controller
 
         $disk = Storage::disk($file->storage_disk);
 
-        if (!$disk->exists($file->file_path)) {
+        if (! $disk->exists($file->file_path)) {
             return response()->json([
                 'found' => false,
             ]);
@@ -210,7 +221,7 @@ class SessionController extends Controller
             ]);
         }
 
-        if (!extension_loaded('opencv')) {
+        if (! extension_loaded('opencv')) {
             return response()->json([
                 'found' => false,
             ]);
@@ -218,7 +229,7 @@ class SessionController extends Controller
 
         $cascadePath = '/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml';
 
-        if (!file_exists($cascadePath)) {
+        if (! file_exists($cascadePath)) {
             return response()->json([
                 'found' => false,
             ]);
@@ -232,7 +243,7 @@ class SessionController extends Controller
             ]);
         }
 
-        if (!$src) {
+        if (! $src) {
             return response()->json([
                 'found' => false,
             ]);
@@ -241,9 +252,9 @@ class SessionController extends Controller
         $gray = null;
         \CV\cvtColor($src, $gray, \CV\COLOR_BGR2GRAY);
 
-        $classifier = new CascadeClassifier();
+        $classifier = new CascadeClassifier;
 
-        if (!$classifier->load($cascadePath)) {
+        if (! $classifier->load($cascadePath)) {
             return response()->json([
                 'found' => false,
             ]);
@@ -253,7 +264,7 @@ class SessionController extends Controller
         $classifier->detectMultiScale($gray, $faces, 1.1, 3, 0, new Size(40, 40));
         $face = $this->pickLargestFace($faces);
 
-        if (!$face) {
+        if (! $face) {
             return response()->json([
                 'found' => false,
             ]);
@@ -284,16 +295,16 @@ class SessionController extends Controller
 
     protected function assetUrl(?AssetFile $assetFile): ?string
     {
-        if (!$assetFile) {
+        if (! $assetFile) {
             return null;
         }
 
-        return url('storage/' . ltrim($assetFile->file_path, '/'));
+        return url('storage/'.ltrim($assetFile->file_path, '/'));
     }
 
     protected function pickLargestFace($faces): ?array
     {
-        if (!is_array($faces) || empty($faces)) {
+        if (! is_array($faces) || empty($faces)) {
             return null;
         }
 
@@ -303,7 +314,7 @@ class SessionController extends Controller
         foreach ($faces as $face) {
             $rect = $this->normalizeFaceRect($face);
 
-            if (!$rect) {
+            if (! $rect) {
                 continue;
             }
 

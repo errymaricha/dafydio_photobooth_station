@@ -29,6 +29,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/print-logs', fn () => Inertia::render('printlogs/Index'))->name('print-logs.index');
     Route::get('/pricing', fn () => Inertia::render('pricing/Index'))->name('pricing.index');
     Route::get('/vouchers', fn () => Inertia::render('vouchers/Index'))->name('vouchers.index');
+    Route::get('/clients', fn () => Inertia::render('clients/Index'))->name('clients.index');
+    Route::get('/clients/{customerWhatsapp}', fn (string $customerWhatsapp) => Inertia::render('clients/Show', ['customerWhatsapp' => $customerWhatsapp]))->name('clients.show');
 });
 
 require __DIR__.'/settings.php';

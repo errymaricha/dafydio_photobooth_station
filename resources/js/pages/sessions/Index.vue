@@ -2,7 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
-import { index as sessionIndex } from '@/actions/App/Http/Controllers/Api/Editor/SessionController';
+import * as sessionApi from '@/actions/App/Http/Controllers/Api/Editor/SessionController';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
@@ -21,6 +21,8 @@ type SessionItem = {
 };
 
 const { get } = useApi();
+const sessionIndex =
+    sessionApi.index ?? sessionApi.default?.index;
 const sessions = ref<SessionItem[]>([]);
 const loading = ref(true);
 const refreshing = ref(false);
@@ -84,6 +86,10 @@ const loadSessions = async (silent = false): Promise<void> => {
     }
 
     try {
+        if (!sessionIndex) {
+            throw new Error('Session index action is unavailable.');
+        }
+
         const response = await get<{ data?: SessionItem[] } | SessionItem[]>(
             sessionIndex(),
         );

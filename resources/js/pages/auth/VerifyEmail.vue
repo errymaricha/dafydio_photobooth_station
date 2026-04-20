@@ -4,7 +4,7 @@ import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { logout } from '@/routes';
-import { send } from '@/routes/verification';
+import * as verification from '@/routes/verification';
 
 defineOptions({
     layout: {
@@ -31,7 +31,7 @@ defineProps<{
     </div>
 
     <Form
-        v-bind="send.form()"
+        v-bind="verification.send.form()"
         class="space-y-6 text-center"
         v-slot="{ processing }"
     >

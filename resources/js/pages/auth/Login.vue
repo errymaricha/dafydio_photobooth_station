@@ -3,7 +3,7 @@ import { Form, Head } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import { register } from '@/routes';
-import { store } from '@/routes/login';
+import * as loginRoutes from '@/routes/login';
 </script>
 
 <template>
@@ -23,7 +23,7 @@ import { store } from '@/routes/login';
             </div>
 
             <Form
-                v-bind="store.form()"
+                v-bind="loginRoutes.store.form()"
                 v-slot="{ errors, processing }"
                 class="space-y-4"
             >
