@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AndroidDevice;
 use App\Models\AssetFile;
+use App\Models\Customer;
 use App\Models\CustomerCloudAccount;
 use App\Models\PhotoSession;
 use App\Models\Role;
@@ -41,6 +42,34 @@ class CustomerCloudAccountTest extends TestCase
 
         $this->assertNotNull($account);
         $this->assertTrue(Hash::check('Str0ng!Pass', (string) $account?->getAttribute('cloud_password_hash')));
+    }
+
+    public function test_cloud_account_upsert_does_not_create_duplicate_customer_identity(): void
+    {
+        $admin = $this->createAdminUser();
+        Sanctum::actingAs($admin);
+
+        $this->postJson('/api/editor/customers/cloud-account', [
+            'customer_whatsapp' => '0812 3456 7890',
+            'password' => 'Str0ng!Pass',
+            'password_confirmation' => 'Str0ng!Pass',
+        ])->assertOk();
+
+        $this->postJson('/api/editor/customers/cloud-account', [
+            'customer_whatsapp' => '+62-812-3456-7890',
+            'password' => 'An0ther!Pass',
+            'password_confirmation' => 'An0ther!Pass',
+        ])->assertOk()
+            ->assertJsonPath('customer_whatsapp', '6281234567890')
+            ->assertJsonPath('username', '6281234567890');
+
+        $this->assertDatabaseCount('customers', 1);
+        $this->assertDatabaseCount('customer_cloud_accounts', 1);
+
+        $customer = Customer::query()->first();
+
+        $this->assertNotNull($customer);
+        $this->assertSame('6281234567890', $customer?->customer_whatsapp);
     }
 
     public function test_history_returns_sessions_and_photo_file_details_for_customer(): void
@@ -184,6 +213,7 @@ class CustomerCloudAccountTest extends TestCase
         $this->getJson('/api/editor/customers')
             ->assertOk()
             ->assertJsonPath('customers.0.customer_id', '6281234567890')
+            ->assertJsonPath('customers.0.tier', 'regular')
             ->assertJsonPath('customers.0.sessions_count', 2)
             ->assertJsonPath('customers.0.paid_sessions_count', 1)
             ->assertJsonPath('customers.0.captured_photos_count', 6)
@@ -260,6 +290,7 @@ class CustomerCloudAccountTest extends TestCase
         $this->getJson('/api/editor/customers/0812-3456-7890/cloud-sync')
             ->assertOk()
             ->assertJsonPath('customer_id', '6281234567890')
+            ->assertJsonPath('customer_tier', 'regular')
             ->assertJsonPath('total_sessions', 1)
             ->assertJsonPath('total_photos', 1)
             ->assertJsonPath('sessions.0.session_code', 'SES-SYNC-001')

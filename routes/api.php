@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Device\MasterDataController;
 use App\Http\Controllers\Api\Device\SessionController as DeviceSessionController;
 use App\Http\Controllers\Api\Device\UploadController;
 use App\Http\Controllers\Api\Editor\CustomerCloudAccountController;
+use App\Http\Controllers\Api\Editor\CustomerSubscriptionController;
 use App\Http\Controllers\Api\Editor\DashboardController;
 use App\Http\Controllers\Api\Editor\EditJobController;
 use App\Http\Controllers\Api\Editor\PricingController;
@@ -86,6 +87,8 @@ Route::prefix('editor')
         Route::post('/customers/cloud-account', [CustomerCloudAccountController::class, 'upsert']);
         Route::get('/customers/{customerWhatsapp}/history', [CustomerCloudAccountController::class, 'history']);
         Route::get('/customers/{customerWhatsapp}/cloud-sync', [CustomerCloudAccountController::class, 'cloudSync']);
+        Route::post('/customers/{customerWhatsapp}/subscriptions/upgrade', [CustomerSubscriptionController::class, 'upgrade']);
+        Route::post('/customers/{customerWhatsapp}/subscriptions/downgrade', [CustomerSubscriptionController::class, 'downgrade']);
         Route::get('/pricing', [PricingController::class, 'index']);
         Route::patch('/pricing', [PricingController::class, 'update']);
         Route::get('/voucher-library', [VoucherController::class, 'libraryIndex']);

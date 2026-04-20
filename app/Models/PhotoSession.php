@@ -21,6 +21,7 @@ class PhotoSession extends Model
         'device_id',
         'user_id',
         'subscription_id',
+        'customer_id',
         'template_id',
         'session_type',
         'source_type',
@@ -65,6 +66,11 @@ class PhotoSession extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class, 'customer_id');
     }
 
     public function manualPaymentReviewer(): BelongsTo

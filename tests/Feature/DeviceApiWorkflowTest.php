@@ -189,6 +189,7 @@ class DeviceApiWorkflowTest extends TestCase
             ->assertJsonPath('unlock_photo', false)
             ->assertJsonPath('manual_payment_requested', true)
             ->assertJsonPath('manual_payment_status', 'pending_approval')
+            ->assertJsonPath('customer_tier', 'regular')
             ->assertJsonPath('customer_whatsapp', '6281234567890')
             ->assertJsonPath('additional_print_count', 2);
 
@@ -235,6 +236,38 @@ class DeviceApiWorkflowTest extends TestCase
         $this->assertDatabaseHas('session_events', [
             'session_id' => $sessionId,
             'event_type' => 'manual_payment_approved',
+        ]);
+
+        $this->assertDatabaseHas('customers', [
+            'customer_whatsapp' => '6281234567890',
+            'tier' => 'regular',
+        ]);
+    }
+
+    public function test_device_session_reuses_existing_customer_identity_for_same_whatsapp(): void
+    {
+        $device = $this->createDevice();
+        Sanctum::actingAs($device);
+
+        $firstSession = $this->postJson('/api/device/sessions', [
+            'payment_method' => 'manual',
+            'customer_whatsapp' => '081234567890',
+        ])->assertCreated();
+
+        $firstCustomerId = (string) $firstSession->json('customer_id');
+
+        $secondSession = $this->postJson('/api/device/sessions', [
+            'payment_method' => 'manual',
+            'customer_whatsapp' => '6281234567890',
+        ])->assertCreated();
+
+        $secondCustomerId = (string) $secondSession->json('customer_id');
+
+        $this->assertSame($firstCustomerId, $secondCustomerId);
+        $this->assertDatabaseCount('customers', 1);
+        $this->assertDatabaseHas('customers', [
+            'id' => $firstCustomerId,
+            'customer_whatsapp' => '6281234567890',
         ]);
     }
 
@@ -412,6 +445,7 @@ class DeviceApiWorkflowTest extends TestCase
         $response->assertCreated()
             ->assertJsonPath('voucher_applied', true)
             ->assertJsonPath('voucher_type', 'promo')
+            ->assertJsonPath('customer_tier', 'free')
             ->assertJsonPath('payment_status', 'pending');
     }
 

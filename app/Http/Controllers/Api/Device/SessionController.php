@@ -10,6 +10,7 @@ use App\Http\Requests\DeviceVoucherVerifyRequest;
 use App\Models\PhotoSession;
 use App\Models\SessionVoucher;
 use App\Models\Voucher;
+use App\Support\CustomerIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,10 @@ use Illuminate\Support\Str;
 class SessionController extends Controller
 {
     private const DEVICE_CONTRACT_VERSION = '2026-04-17';
+
+    public function __construct(
+        private CustomerIdentity $customerIdentity
+    ) {}
 
     /**
      * Start a new capture session for the authenticated device.
@@ -55,7 +60,7 @@ class SessionController extends Controller
         $isManualPayment = ! $isBypassVoucher
             && (($validated['payment_method'] ?? null) === 'manual');
         $normalizedWhatsapp = isset($validated['customer_whatsapp'])
-            ? $this->normalizeWhatsapp($validated['customer_whatsapp'])
+            ? $this->customerIdentity->normalizeWhatsapp($validated['customer_whatsapp'])
             : null;
 
         $session = DB::transaction(function () use (
@@ -66,6 +71,8 @@ class SessionController extends Controller
             $normalizedWhatsapp,
             $validated
         ) {
+            $customer = $this->customerIdentity->resolveOrCreateCustomerByWhatsapp($normalizedWhatsapp);
+
             $session = PhotoSession::create([
                 'id' => Str::uuid(),
                 'session_code' => 'SES-'.strtoupper(Str::random(8)),
@@ -73,6 +80,7 @@ class SessionController extends Controller
                 'device_id' => $device->id,
                 'session_type' => 'photobooth',
                 'source_type' => 'android',
+                'customer_id' => $customer?->id,
                 'status' => 'created',
                 'payment_status' => $isBypassVoucher ? 'paid' : 'pending',
                 'payment_method' => $isBypassVoucher
@@ -133,6 +141,8 @@ class SessionController extends Controller
 
             return $session;
         });
+        $session->loadMissing('customer');
+        $customerTier = $session->customer?->tier ?? 'free';
 
         return response()->json([
             'message' => 'Session created',
@@ -147,6 +157,8 @@ class SessionController extends Controller
             'unlock_photo' => $session->payment_status === 'paid',
             'manual_payment_requested' => $session->payment_method === 'manual',
             'manual_payment_status' => $session->manual_payment_status,
+            'customer_id' => $session->customer_id,
+            'customer_tier' => $customerTier,
             'customer_whatsapp' => $session->customer_whatsapp,
             'additional_print_count' => (int) $session->additional_print_count,
             'voucher_applied' => (bool) $voucher,
@@ -288,6 +300,8 @@ class SessionController extends Controller
             'payment_unlocked' => ! $paymentRequired,
             'manual_payment_requested' => $session->payment_method === 'manual',
             'manual_payment_status' => $session->manual_payment_status,
+            'customer_id' => $session->customer_id,
+            'customer_tier' => $session->customer?->tier ?? 'free',
             'customer_whatsapp' => $session->customer_whatsapp,
             'additional_print_count' => (int) $session->additional_print_count,
             'skip_reason' => $canSkipPayment ? 'voucher_skip' : null,
@@ -476,21 +490,6 @@ class SessionController extends Controller
         }
 
         return in_array($voucherType, ['skip', 'free', 'override'], true);
-    }
-
-    private function normalizeWhatsapp(string $input): string
-    {
-        $digits = preg_replace('/\D+/', '', trim($input)) ?? '';
-
-        if ($digits === '') {
-            return $digits;
-        }
-
-        if (str_starts_with($digits, '0')) {
-            return '62'.substr($digits, 1);
-        }
-
-        return $digits;
     }
 
     private function isSessionPaymentUnlocked(PhotoSession $session): bool

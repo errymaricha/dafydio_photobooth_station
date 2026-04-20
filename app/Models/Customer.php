@@ -5,9 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class CustomerCloudAccount extends Model
+class Customer extends Model
 {
     use HasUuids;
 
@@ -17,14 +18,9 @@ class CustomerCloudAccount extends Model
 
     protected $fillable = [
         'customer_whatsapp',
-        'cloud_username',
-        'cloud_password_hash',
-        'password_set_at',
+        'tier',
         'status',
-    ];
-
-    protected $hidden = [
-        'cloud_password_hash',
+        'cloud_account_id',
     ];
 
     protected function customerWhatsapp(): Attribute
@@ -34,23 +30,19 @@ class CustomerCloudAccount extends Model
         );
     }
 
-    protected function cloudUsername(): Attribute
+    public function cloudAccount(): BelongsTo
     {
-        return Attribute::make(
-            set: fn (?string $value): ?string => self::normalizeWhatsapp($value),
-        );
+        return $this->belongsTo(CustomerCloudAccount::class, 'cloud_account_id');
     }
 
-    protected function casts(): array
+    public function sessions(): HasMany
     {
-        return [
-            'password_set_at' => 'datetime',
-        ];
+        return $this->hasMany(PhotoSession::class, 'customer_id');
     }
 
-    public function customer(): HasOne
+    public function subscriptions(): HasMany
     {
-        return $this->hasOne(Customer::class, 'cloud_account_id');
+        return $this->hasMany(CustomerSubscription::class, 'customer_id');
     }
 
     private static function normalizeWhatsapp(?string $input): ?string

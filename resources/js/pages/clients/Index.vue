@@ -12,6 +12,7 @@ type ClientItem = {
     customer_id: string;
     customer_whatsapp: string;
     username: string;
+    tier?: string;
     has_cloud_password: boolean;
     account_status?: string | null;
     password_set_at?: string | null;
@@ -116,6 +117,7 @@ onMounted(async () => {
                             <th class="px-4 py-3">Session</th>
                             <th class="px-4 py-3">Paid</th>
                             <th class="px-4 py-3">Foto Booth</th>
+                            <th class="px-4 py-3">Tier</th>
                             <th class="px-4 py-3">Cloud Password</th>
                             <th class="px-4 py-3">Last Session</th>
                             <th class="px-4 py-3" />
@@ -139,6 +141,11 @@ onMounted(async () => {
                             <td class="px-4 py-3">{{ client.sessions_count }}</td>
                             <td class="px-4 py-3">{{ client.paid_sessions_count }}</td>
                             <td class="px-4 py-3">{{ client.captured_photos_count }}</td>
+                            <td class="px-4 py-3">
+                                <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+                                    {{ client.tier ?? 'regular' }}
+                                </span>
+                            </td>
                             <td class="px-4 py-3">
                                 <span
                                     class="rounded-full px-2 py-1 text-xs font-semibold"

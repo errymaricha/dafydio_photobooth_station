@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api\Editor;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpsertCustomerCloudAccountRequest;
+use App\Models\Customer;
 use App\Models\CustomerCloudAccount;
+use App\Models\CustomerSubscription;
 use App\Models\PhotoSession;
+use App\Support\CustomerIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
@@ -14,6 +17,10 @@ use Illuminate\Support\Str;
 
 class CustomerCloudAccountController extends Controller
 {
+    public function __construct(
+        private CustomerIdentity $customerIdentity
+    ) {}
+
     public function index(): JsonResponse
     {
         $summaries = PhotoSession::query()
@@ -30,15 +37,22 @@ class CustomerCloudAccountController extends Controller
             ->whereIn('customer_whatsapp', $summaries->pluck('customer_whatsapp')->all())
             ->get()
             ->keyBy('customer_whatsapp');
+        $customers = Customer::query()
+            ->whereIn('customer_whatsapp', $summaries->pluck('customer_whatsapp')->all())
+            ->get()
+            ->keyBy('customer_whatsapp');
 
         return response()->json([
-            'customers' => $summaries->map(function ($summary) use ($accounts): array {
+            'customers' => $summaries->map(function ($summary) use ($accounts, $customers): array {
                 $account = $accounts->get($summary->customer_whatsapp);
+                $customer = $customers->get($summary->customer_whatsapp);
 
                 return [
                     'customer_id' => $summary->customer_whatsapp,
                     'customer_whatsapp' => $summary->customer_whatsapp,
                     'username' => $account?->cloud_username ?? $summary->customer_whatsapp,
+                    'tier' => $customer?->tier ?? 'regular',
+                    'has_active_subscription' => $this->hasActiveSubscription($customer?->id),
                     'has_cloud_password' => (bool) $account?->password_set_at,
                     'account_status' => $account?->status,
                     'password_set_at' => $account?->password_set_at,
@@ -54,7 +68,7 @@ class CustomerCloudAccountController extends Controller
     public function upsert(UpsertCustomerCloudAccountRequest $request): JsonResponse
     {
         $validated = $request->validated();
-        $customerWhatsapp = $this->normalizeWhatsapp($validated['customer_whatsapp']);
+        $customerWhatsapp = $this->customerIdentity->normalizeWhatsapp($validated['customer_whatsapp']);
 
         $account = CustomerCloudAccount::query()->firstOrNew([
             'customer_whatsapp' => $customerWhatsapp,
@@ -72,6 +86,17 @@ class CustomerCloudAccountController extends Controller
         ]);
         $account->save();
 
+        $customer = $this->customerIdentity->resolveOrCreateCustomerByWhatsapp($customerWhatsapp);
+
+        if ($customer) {
+            $customer->fill([
+                'tier' => $customer->tier ?: 'regular',
+                'status' => $customer->status ?: 'active',
+                'cloud_account_id' => $account->id,
+            ]);
+            $customer->save();
+        }
+
         return response()->json([
             'message' => 'Customer cloud credential saved.',
             'customer_id' => $account->cloud_username,
@@ -84,7 +109,7 @@ class CustomerCloudAccountController extends Controller
 
     public function history(string $customerWhatsapp): JsonResponse
     {
-        $normalized = $this->normalizeWhatsapp($customerWhatsapp);
+        $normalized = $this->customerIdentity->normalizeWhatsapp($customerWhatsapp) ?? '';
         $payload = $this->buildCustomerArchivePayload($normalized);
 
         return response()->json([
@@ -92,6 +117,8 @@ class CustomerCloudAccountController extends Controller
                 'customer_id' => $normalized,
                 'customer_whatsapp' => $normalized,
                 'username' => $payload['username'],
+                'tier' => $payload['customer_tier'],
+                'active_subscription' => $payload['active_subscription'],
                 'has_cloud_password' => $payload['has_cloud_password'],
                 'password_set_at' => $payload['password_set_at'],
                 'account_status' => $payload['account_status'],
@@ -108,13 +135,15 @@ class CustomerCloudAccountController extends Controller
 
     public function cloudSync(string $customerWhatsapp): JsonResponse
     {
-        $normalized = $this->normalizeWhatsapp($customerWhatsapp);
+        $normalized = $this->customerIdentity->normalizeWhatsapp($customerWhatsapp) ?? '';
         $payload = $this->buildCustomerArchivePayload($normalized);
 
         return response()->json([
             'customer_id' => $normalized,
             'customer_whatsapp' => $normalized,
             'username' => $payload['username'],
+            'customer_tier' => $payload['customer_tier'],
+            'active_subscription' => $payload['active_subscription'],
             'has_cloud_password' => $payload['has_cloud_password'],
             'password_set_at' => $payload['password_set_at'],
             'account_status' => $payload['account_status'],
@@ -126,24 +155,11 @@ class CustomerCloudAccountController extends Controller
         ]);
     }
 
-    private function normalizeWhatsapp(string $input): string
-    {
-        $digits = preg_replace('/\D+/', '', trim($input)) ?? '';
-
-        if ($digits === '') {
-            return $digits;
-        }
-
-        if (str_starts_with($digits, '0')) {
-            return '62'.substr($digits, 1);
-        }
-
-        return $digits;
-    }
-
     /**
      * @return array{
      *     username: string,
+     *     customer_tier: string,
+     *     active_subscription: array<string, mixed>|null,
      *     has_cloud_password: bool,
      *     password_set_at: mixed,
      *     account_status: string|null,
@@ -170,14 +186,22 @@ class CustomerCloudAccountController extends Controller
         $account = CustomerCloudAccount::query()
             ->where('customer_whatsapp', $normalized)
             ->first();
+        $customer = Customer::query()
+            ->where('customer_whatsapp', $normalized)
+            ->first();
 
         $totalPhotos = $sessions->sum(fn (PhotoSession $session): int => $session->photos->count());
         $totalRenderedOutputs = $sessions->sum(
             fn (PhotoSession $session): int => $session->renderedOutputs->count()
         );
+        $activeSubscription = $customer
+            ? $this->activeSubscriptionPayload($customer->id)
+            : null;
 
         return [
             'username' => $account?->cloud_username ?? $normalized,
+            'customer_tier' => $customer?->tier ?? 'regular',
+            'active_subscription' => $activeSubscription,
             'has_cloud_password' => (bool) $account?->password_set_at,
             'password_set_at' => $account?->password_set_at,
             'account_status' => $account?->status,
@@ -291,5 +315,51 @@ class CustomerCloudAccountController extends Controller
         }
 
         return Storage::disk($disk)->url($path);
+    }
+
+    private function hasActiveSubscription(?string $customerId): bool
+    {
+        if (! $customerId) {
+            return false;
+        }
+
+        return CustomerSubscription::query()
+            ->where('customer_id', $customerId)
+            ->where('status', 'active')
+            ->where(function ($query) {
+                $query->whereNull('end_at')
+                    ->orWhere('end_at', '>=', now());
+            })
+            ->exists();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function activeSubscriptionPayload(string $customerId): ?array
+    {
+        $subscription = CustomerSubscription::query()
+            ->with('package')
+            ->where('customer_id', $customerId)
+            ->where('status', 'active')
+            ->where(function ($query) {
+                $query->whereNull('end_at')
+                    ->orWhere('end_at', '>=', now());
+            })
+            ->latest('start_at')
+            ->first();
+
+        if (! $subscription) {
+            return null;
+        }
+
+        return [
+            'id' => $subscription->id,
+            'status' => $subscription->status,
+            'start_at' => $subscription->start_at,
+            'end_at' => $subscription->end_at,
+            'package_code' => $subscription->package?->package_code,
+            'package_name' => $subscription->package?->package_name,
+        ];
     }
 }
