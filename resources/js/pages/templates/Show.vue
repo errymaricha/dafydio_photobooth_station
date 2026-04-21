@@ -1362,7 +1362,7 @@ onBeforeUnmount(() => {
         title="Template Detail"
         subtitle="Lihat dimensi canvas dan posisi slot yang akan dipakai dalam proses editing."
     >
-        <div v-if="loading" class="text-sm text-slate-500">
+        <div v-if="loading" class="text-sm text-[#6d6b77]">
             Loading template detail...
         </div>
 
@@ -1374,17 +1374,17 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-else class="space-y-6">
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div class="space-y-2">
                         <div class="flex flex-wrap items-center gap-3">
                             <div v-if="!isEditingName" class="flex items-center gap-2">
-                                <h2 class="text-2xl font-semibold text-slate-900">
+                                <h2 class="text-2xl font-semibold text-[#2f2b3dcc]">
                                     {{ template.template_name }}
                                 </h2>
                                 <button
                                     type="button"
-                                    class="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                                    class="rounded-lg border border-[#d8d4e7] px-2.5 py-1 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                                     @click="startNameEdit"
                                 >
                                     Edit Nama
@@ -1394,7 +1394,7 @@ onBeforeUnmount(() => {
                                 <input
                                     v-model="nameDraft"
                                     type="text"
-                                    class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                                 />
                                 <button
                                     type="button"
@@ -1406,7 +1406,7 @@ onBeforeUnmount(() => {
                                 </button>
                                 <button
                                     type="button"
-                                    class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                                     @click="cancelNameEdit"
                                 >
                                     Batal
@@ -1414,7 +1414,7 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
 
-                        <div class="grid gap-2 text-sm text-slate-500 md:grid-cols-2 xl:grid-cols-4">
+                        <div class="grid gap-2 text-sm text-[#6d6b77] md:grid-cols-2 xl:grid-cols-4">
                             <p>Code: {{ template.template_code ?? '-' }}</p>
                             <p>Category: {{ template.category ?? '-' }}</p>
                             <p>Paper Size: {{ template.paper_size ?? '-' }}</p>
@@ -1434,7 +1434,7 @@ onBeforeUnmount(() => {
                             :class="
                                 isActiveTemplate
                                     ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-                                    : 'border-slate-300 bg-slate-50 text-slate-600'
+                                    : 'border-[#d8d4e7] bg-[#f5f5f9] text-[#6d6b77]'
                             "
                         >
                             {{
@@ -1445,27 +1445,27 @@ onBeforeUnmount(() => {
                         </div>
                         <button
                             type="button"
-                            class="inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                            class="inline-flex rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                             @click="markTemplateAsActive"
                         >
                             Tandai Aktif
                         </button>
                         <Link
                             :href="templatesRoutes.index.url()"
-                            class="inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                            class="inline-flex rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                         >
                             Kembali
                         </Link>
                         <button
                             type="button"
-                            class="inline-flex rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-700"
+                            class="inline-flex rounded-lg bg-[#7367f0] px-3 py-2 text-xs font-semibold text-white hover:bg-[#685dd8]"
                             @click="useTemplate"
                         >
                             Gunakan Template
                         </button>
                         <button
                             type="button"
-                            class="inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="inline-flex rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5] disabled:cursor-not-allowed disabled:opacity-60"
                             :disabled="savingTemplate"
                             @click="toggleArchive"
                         >
@@ -1473,7 +1473,7 @@ onBeforeUnmount(() => {
                         </button>
                         <button
                             type="button"
-                            class="inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="inline-flex rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5] disabled:cursor-not-allowed disabled:opacity-60"
                             :disabled="savingTemplate"
                             @click="duplicateTemplateNow"
                         >
@@ -1488,7 +1488,7 @@ onBeforeUnmount(() => {
                         </button>
                         <button
                             type="button"
-                            class="inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            class="inline-flex rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5] disabled:cursor-not-allowed disabled:opacity-60"
                             :disabled="!hasLayoutChanges || savingLayout"
                             @click="resetSlotLayoutDraft"
                         >
@@ -1591,30 +1591,30 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
                     <div class="mb-4 flex items-center justify-between gap-3">
                         <div>
-                            <h3 class="text-lg font-semibold text-slate-900">
+                            <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                                 Canvas Preview
                             </h3>
-                            <p class="text-sm text-slate-500">
+                            <p class="text-sm text-[#6d6b77]">
                                 Posisi slot divisualkan relatif terhadap dimensi canvas template.
                             </p>
-                            <p class="text-xs text-blue-600">
+                            <p class="text-xs text-[#7367f0]">
                                 Drag kotak slot di canvas untuk atur letak slot foto.
                             </p>
-                            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-600">
+                            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#6d6b77]">
                                 <label class="inline-flex items-center gap-2">
                                     <input
                                         v-model="snapEnabled"
                                         type="checkbox"
-                                        class="h-4 w-4 rounded border-slate-300"
+                                        class="h-4 w-4 rounded border-[#d8d4e7]"
                                     />
                                     Snap grid
                                 </label>
                                 <select
                                     v-model.number="snapStep"
-                                    class="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs"
+                                    class="rounded-lg border border-[#d8d4e7] bg-white px-2 py-1 text-xs"
                                     :disabled="!snapEnabled"
                                 >
                                     <option :value="5">Grid 5px</option>
@@ -1626,7 +1626,7 @@ onBeforeUnmount(() => {
                                     <input
                                         v-model="lockAspectRatio"
                                         type="checkbox"
-                                        class="h-4 w-4 rounded border-slate-300"
+                                        class="h-4 w-4 rounded border-[#d8d4e7]"
                                     />
                                     Lock ratio
                                 </label>
@@ -1635,7 +1635,7 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div
-                        class="relative mx-auto flex min-h-96 w-full max-w-3xl items-center justify-center overflow-hidden rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-6"
+                        class="relative mx-auto flex min-h-96 w-full max-w-3xl items-center justify-center overflow-hidden rounded-3xl border border-dashed border-[#d8d4e7] bg-[#f5f5f9] p-6"
                     >
                         <img
                             v-if="template.preview_url"
@@ -1646,7 +1646,7 @@ onBeforeUnmount(() => {
 
                         <div
                             data-template-canvas
-                            class="relative w-full rounded-2xl border border-slate-300 bg-white/80 shadow-inner"
+                            class="relative w-full rounded-2xl border border-[#d8d4e7] bg-white/80 shadow-inner"
                             :style="{
                                 aspectRatio: `${template.canvas_width ?? 4} / ${template.canvas_height ?? 3}`,
                             }"
@@ -1660,7 +1660,7 @@ onBeforeUnmount(() => {
                                         ? isSlotDragging(slot.slot_index)
                                             ? 'z-10 cursor-grabbing border-emerald-500 bg-emerald-100/80 text-emerald-800'
                                             : 'z-10 cursor-grab border-emerald-500 bg-emerald-100/80 text-emerald-800'
-                                        : 'cursor-grab border-blue-400 bg-blue-100/70 text-blue-700 hover:border-blue-500'
+                                        : 'cursor-grab border-[#9f96f5] bg-[#edeafd] text-[#685dd8] hover:border-[#7367f0]'
                                 "
                                 :style="getSlotPreviewStyle(slot)"
                                 @click="selectedSlotIndex = slot.slot_index"
@@ -1685,7 +1685,7 @@ onBeforeUnmount(() => {
                                 <button
                                     v-if="selectedSlotIndex === slot.slot_index"
                                     type="button"
-                                    class="absolute -left-1.5 -top-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-sm"
+                                    class="absolute -left-1.5 -top-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                     @pointerdown.stop="
                                         startResizeDrag(slot, 'nw', $event)
                                     "
@@ -1696,7 +1696,7 @@ onBeforeUnmount(() => {
                                 <button
                                     v-if="selectedSlotIndex === slot.slot_index"
                                     type="button"
-                                    class="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-sm"
+                                    class="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                     @pointerdown.stop="
                                         startResizeDrag(slot, 'ne', $event)
                                     "
@@ -1707,7 +1707,7 @@ onBeforeUnmount(() => {
                                 <button
                                     v-if="selectedSlotIndex === slot.slot_index"
                                     type="button"
-                                    class="absolute -right-1.5 -bottom-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-sm"
+                                    class="absolute -right-1.5 -bottom-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                     @pointerdown.stop="
                                         startResizeDrag(slot, 'se', $event)
                                     "
@@ -1718,7 +1718,7 @@ onBeforeUnmount(() => {
                                 <button
                                     v-if="selectedSlotIndex === slot.slot_index"
                                     type="button"
-                                    class="absolute -left-1.5 -bottom-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-sm"
+                                    class="absolute -left-1.5 -bottom-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                     @pointerdown.stop="
                                         startResizeDrag(slot, 'sw', $event)
                                     "
@@ -1741,7 +1741,7 @@ onBeforeUnmount(() => {
                             >
                                 <div
                                     v-if="layer.type === 'text'"
-                                    class="whitespace-pre-wrap rounded bg-white/80 px-1.5 py-1 text-xs font-semibold text-slate-800 shadow-sm"
+                                    class="whitespace-pre-wrap rounded bg-white/80 px-1.5 py-1 text-xs font-semibold text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                 >
                                     {{ layer.text || layer.label }}
                                 </div>
@@ -1753,7 +1753,7 @@ onBeforeUnmount(() => {
                                 />
                                 <div
                                     v-else
-                                    class="flex h-full w-full items-center justify-center rounded border border-slate-400 text-xs font-semibold text-slate-700 shadow-sm"
+                                    class="flex h-full w-full items-center justify-center rounded border border-[#c8c4d7] text-xs font-semibold text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                 >
                                     QR
                                 </div>
@@ -1773,9 +1773,9 @@ onBeforeUnmount(() => {
                         class="mt-4 space-y-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-800"
                     >
                         <div v-if="selectedSlot">
-                            Slot aktif: {{ selectedSlot.slot_index }} •
+                            Slot aktif: {{ selectedSlot.slot_index }} -
                             {{ selectedSlot.width }}x{{ selectedSlot.height }}
-                            • X: {{ selectedSlot.x }} • Y: {{ selectedSlot.y }}
+                            - X: {{ selectedSlot.x }} - Y: {{ selectedSlot.y }}
                         </div>
                         <div v-else class="text-xs text-emerald-700">
                             Pilih slot untuk melihat detail dan menggeser posisi.
@@ -1829,7 +1829,7 @@ onBeforeUnmount(() => {
                         <div class="flex flex-wrap items-center gap-2">
                             <button
                                 type="button"
-                                class="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                class="rounded-lg border border-[#d8d4e7] bg-white px-2.5 py-1 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f5f5f9] disabled:cursor-not-allowed disabled:opacity-60"
                                 :disabled="savingSlot"
                                 @click="addTemplateSlot"
                             >
@@ -1846,29 +1846,29 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div class="mt-4 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                        <div class="text-xs font-semibold text-slate-700">
+                    <div class="mt-4 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3">
+                        <div class="text-xs font-semibold text-[#2f2b3dcc]">
                             Letak Foto Slot
                         </div>
                         <input
                             v-if="selectedSlot"
                             type="file"
                             accept="image/*"
-                            class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs"
+                            class="rounded-lg border border-[#d8d4e7] bg-white px-3 py-2 text-xs"
                             @change="onSlotPhotoSelected(selectedSlot.slot_index, $event)"
                         />
                         <div class="flex items-center gap-2">
                             <button
                                 v-if="selectedSlot"
                                 type="button"
-                                class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
+                                class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-white"
                                 @click="clearSlotPhoto(selectedSlot.slot_index)"
                             >
                                 Hapus Foto Slot Aktif
                             </button>
                             <button
                                 type="button"
-                                class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
+                                class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-white"
                                 @click="clearAllSlotPhotos"
                             >
                                 Hapus Semua Foto
@@ -1876,27 +1876,27 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div class="mt-3 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                        <div class="text-xs font-semibold text-slate-700">
+                    <div class="mt-3 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3">
+                        <div class="text-xs font-semibold text-[#2f2b3dcc]">
                             Overlay Template PNG
                         </div>
-                        <label class="inline-flex items-center gap-2 text-xs text-slate-600">
+                        <label class="inline-flex items-center gap-2 text-xs text-[#6d6b77]">
                             <input
                                 v-model="overlayEnabled"
                                 type="checkbox"
-                                class="h-4 w-4 rounded border-slate-300"
+                                class="h-4 w-4 rounded border-[#d8d4e7]"
                             />
                             Tampilkan overlay
                         </label>
                         <input
                             type="file"
                             accept="image/png"
-                            class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs"
+                            class="rounded-lg border border-[#d8d4e7] bg-white px-3 py-2 text-xs"
                             :disabled="uploadingOverlay"
                             @change="setCustomOverlayFile"
                         />
                         <div class="flex items-center gap-3">
-                            <span class="text-xs text-slate-600">Opacity</span>
+                            <span class="text-xs text-[#6d6b77]">Opacity</span>
                             <input
                                 v-model.number="overlayOpacity"
                                 type="range"
@@ -1905,35 +1905,35 @@ onBeforeUnmount(() => {
                                 step="5"
                                 class="w-full"
                             />
-                            <span class="w-10 text-right text-xs font-semibold text-slate-700">
+                            <span class="w-10 text-right text-xs font-semibold text-[#2f2b3dcc]">
                                 {{ overlayOpacity }}%
                             </span>
                         </div>
                         <button
                             type="button"
-                            class="w-fit rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
+                            class="w-fit rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-white"
                             @click="clearCustomOverlay"
                         >
                             Reset Overlay Kustom
                         </button>
                     </div>
 
-                    <div class="mt-3 grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div class="mt-3 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3">
                         <div class="flex flex-wrap items-center justify-between gap-2">
-                            <div class="text-xs font-semibold text-slate-700">
+                            <div class="text-xs font-semibold text-[#2f2b3dcc]">
                                 Dynamic Layer (Text/QR)
                             </div>
                             <div class="flex items-center gap-2">
                                 <button
                                     type="button"
-                                    class="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-white"
+                                    class="rounded-lg border border-[#d8d4e7] px-2.5 py-1 text-xs font-semibold text-[#2f2b3dcc] hover:bg-white"
                                     @click="addTextLayer"
                                 >
                                     Tambah Text
                                 </button>
                                 <button
                                     type="button"
-                                    class="rounded-lg border border-slate-300 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-white"
+                                    class="rounded-lg border border-[#d8d4e7] px-2.5 py-1 text-xs font-semibold text-[#2f2b3dcc] hover:bg-white"
                                     @click="addQrLayer"
                                 >
                                     Tambah QR
@@ -1941,7 +1941,7 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
 
-                        <div v-if="!dynamicLayers.length" class="text-xs text-slate-500">
+                        <div v-if="!dynamicLayers.length" class="text-xs text-[#6d6b77]">
                             Belum ada layer tambahan.
                         </div>
 
@@ -1949,10 +1949,10 @@ onBeforeUnmount(() => {
                             <div
                                 v-for="layer in dynamicLayers"
                                 :key="layer.id"
-                                class="rounded-lg border border-slate-200 bg-white p-3"
+                                class="rounded-lg border border-[#e8e6ef] bg-white p-3"
                             >
                                 <div class="flex items-start justify-between gap-3">
-                                    <div class="text-xs font-semibold text-slate-700">
+                                    <div class="text-xs font-semibold text-[#2f2b3dcc]">
                                         {{ layer.type === 'text' ? 'Text Layer' : 'QR Layer' }}
                                     </div>
                                     <button
@@ -1965,49 +1965,49 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <div class="mt-3 grid gap-3 md:grid-cols-2">
-                                    <label class="inline-flex items-center gap-2 text-xs text-slate-600 md:col-span-2">
+                                    <label class="inline-flex items-center gap-2 text-xs text-[#6d6b77] md:col-span-2">
                                         <input
                                             v-model="layer.enabled"
                                             type="checkbox"
-                                            class="h-4 w-4 rounded border-slate-300"
+                                            class="h-4 w-4 rounded border-[#d8d4e7]"
                                         />
                                         Aktifkan layer
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Label</span>
                                         <input
                                             v-model="layer.label"
                                             type="text"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                             placeholder="Event Name"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Opacity</span>
                                         <input
                                             v-model.number="layer.opacity"
                                             type="number"
                                             min="0"
                                             max="100"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>X</span>
                                         <input
                                             v-model.number="layer.x"
                                             type="number"
                                             min="0"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Y</span>
                                         <input
                                             v-model.number="layer.y"
                                             type="number"
                                             min="0"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
                                 </div>
@@ -2016,38 +2016,38 @@ onBeforeUnmount(() => {
                                     v-if="layer.type === 'text'"
                                     class="mt-3 grid gap-3 md:grid-cols-2"
                                 >
-                                    <label class="space-y-1 text-xs text-slate-600 md:col-span-2">
+                                    <label class="space-y-1 text-xs text-[#6d6b77] md:col-span-2">
                                         <span>Text</span>
                                         <input
                                             v-model="layer.text"
                                             type="text"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                             placeholder="Happy Wedding"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Font Size</span>
                                         <input
                                             v-model.number="layer.font_size"
                                             type="number"
                                             min="8"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Color</span>
                                         <input
                                             v-model="layer.color"
                                             type="text"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                             placeholder="#111827"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Align</span>
                                         <select
                                             v-model="layer.align"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         >
                                             <option value="left">Left</option>
                                             <option value="center">Center</option>
@@ -2060,93 +2060,93 @@ onBeforeUnmount(() => {
                                     v-else
                                     class="mt-3 grid gap-3 md:grid-cols-2"
                                 >
-                                    <label class="space-y-1 text-xs text-slate-600 md:col-span-2">
+                                    <label class="space-y-1 text-xs text-[#6d6b77] md:col-span-2">
                                         <span>QR Data</span>
                                         <input
                                             v-model="layer.qr_data"
                                             type="text"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                             placeholder="https://photobooth.local/session"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Width</span>
                                         <input
                                             v-model.number="layer.width"
                                             type="number"
                                             min="60"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Height</span>
                                         <input
                                             v-model.number="layer.height"
                                             type="number"
                                             min="60"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>Padding</span>
                                         <input
                                             v-model.number="layer.padding"
                                             type="number"
                                             min="0"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-slate-600">
+                                    <label class="space-y-1 text-xs text-[#6d6b77]">
                                         <span>QR Background</span>
                                         <input
                                             v-model="layer.bg_color"
                                             type="text"
-                                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs"
+                                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                             placeholder="#ffffff"
                                         />
                                     </label>
                                 </div>
 
-                                <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-600">
-                                    <span class="font-semibold text-slate-700">Insert token:</span>
+                                <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-[#6d6b77]">
+                                    <span class="font-semibold text-[#2f2b3dcc]">Insert token:</span>
                                     <button
                                         type="button"
-                                        class="rounded-full border border-slate-300 px-2 py-1 hover:bg-slate-50"
+                                        class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
                                         @click="insertLayerToken(layer, '{session_code}')"
                                     >
                                         Session Code
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full border border-slate-300 px-2 py-1 hover:bg-slate-50"
+                                        class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
                                         @click="insertLayerToken(layer, '{station_code}')"
                                     >
                                         Station Code
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full border border-slate-300 px-2 py-1 hover:bg-slate-50"
+                                        class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
                                         @click="insertLayerToken(layer, '{station_name}')"
                                     >
                                         Station Name
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full border border-slate-300 px-2 py-1 hover:bg-slate-50"
+                                        class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
                                         @click="insertLayerToken(layer, '{device_name}')"
                                     >
                                         Device Name
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full border border-slate-300 px-2 py-1 hover:bg-slate-50"
+                                        class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
                                         @click="insertLayerToken(layer, '{render_date}')"
                                     >
                                         Render Date
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full border border-slate-300 px-2 py-1 hover:bg-slate-50"
+                                        class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
                                         @click="insertLayerToken(layer, '{render_time}')"
                                     >
                                         Render Time
@@ -2155,7 +2155,7 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
 
-                        <div class="rounded-lg border border-dashed border-slate-300 bg-white px-3 py-2 text-xs text-slate-500">
+                        <div class="rounded-lg border border-dashed border-[#d8d4e7] bg-white px-3 py-2 text-xs text-[#6d6b77]">
                             Variabel cepat: {session_code}, {station_code}, {station_name}, {device_name}, {render_date}, {render_time}
                         </div>
 
@@ -2170,8 +2170,8 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h3 class="text-lg font-semibold text-slate-900">
+                <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
+                    <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                         Slot Specification
                     </h3>
 
@@ -2190,30 +2190,30 @@ onBeforeUnmount(() => {
                             :class="
                                 slot.slot_index === selectedSlotIndex
                                     ? 'border-emerald-300 bg-emerald-50'
-                                    : 'border-slate-200 hover:bg-slate-50'
+                                    : 'border-[#e8e6ef] hover:bg-[#f5f5f9]'
                             "
                         >
                             <div class="flex items-center justify-between gap-3">
                                 <button
                                     type="button"
-                                    class="font-medium text-slate-900"
+                                    class="font-medium text-[#2f2b3dcc]"
                                     @click="selectedSlotIndex = slot.slot_index"
                                 >
                                     Slot {{ slot.slot_index }}
                                 </button>
-                                <div class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                                <div class="rounded-full bg-[#edeafd] px-2.5 py-1 text-xs font-medium text-[#685dd8]">
                                     {{ slot.width }}x{{ slot.height }}
                                 </div>
                             </div>
 
                             <div class="mt-3 grid gap-3 md:grid-cols-2">
-                                <label class="space-y-1 text-xs text-slate-600">
+                                <label class="space-y-1 text-xs text-[#6d6b77]">
                                     <span>X</span>
                                     <input
                                         :value="slot.x"
                                         type="number"
                                         min="0"
-                                        class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                                        class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
                                                 x: Number(($event.target as HTMLInputElement).value),
@@ -2221,13 +2221,13 @@ onBeforeUnmount(() => {
                                         "
                                     />
                                 </label>
-                                <label class="space-y-1 text-xs text-slate-600">
+                                <label class="space-y-1 text-xs text-[#6d6b77]">
                                     <span>Y</span>
                                     <input
                                         :value="slot.y"
                                         type="number"
                                         min="0"
-                                        class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                                        class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
                                                 y: Number(($event.target as HTMLInputElement).value),
@@ -2235,13 +2235,13 @@ onBeforeUnmount(() => {
                                         "
                                     />
                                 </label>
-                                <label class="space-y-1 text-xs text-slate-600">
+                                <label class="space-y-1 text-xs text-[#6d6b77]">
                                     <span>Width</span>
                                     <input
                                         :value="slot.width"
                                         type="number"
                                         min="1"
-                                        class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                                        class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
                                                 width: Number(($event.target as HTMLInputElement).value),
@@ -2249,13 +2249,13 @@ onBeforeUnmount(() => {
                                         "
                                     />
                                 </label>
-                                <label class="space-y-1 text-xs text-slate-600">
+                                <label class="space-y-1 text-xs text-[#6d6b77]">
                                     <span>Height</span>
                                     <input
                                         :value="slot.height"
                                         type="number"
                                         min="1"
-                                        class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                                        class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
                                                 height: Number(($event.target as HTMLInputElement).value),
@@ -2263,13 +2263,13 @@ onBeforeUnmount(() => {
                                         "
                                     />
                                 </label>
-                                <label class="space-y-1 text-xs text-slate-600">
+                                <label class="space-y-1 text-xs text-[#6d6b77]">
                                     <span>Rotation</span>
                                     <input
                                         :value="slot.rotation"
                                         type="number"
                                         step="0.1"
-                                        class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                                        class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
                                                 rotation: Number(($event.target as HTMLInputElement).value),
@@ -2277,13 +2277,13 @@ onBeforeUnmount(() => {
                                         "
                                     />
                                 </label>
-                                <label class="space-y-1 text-xs text-slate-600">
+                                <label class="space-y-1 text-xs text-[#6d6b77]">
                                     <span>Border Radius</span>
                                     <input
                                         :value="slot.border_radius"
                                         type="number"
                                         min="0"
-                                        class="w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"
+                                        class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
                                                 border_radius: Number(($event.target as HTMLInputElement).value),
@@ -2299,3 +2299,6 @@ onBeforeUnmount(() => {
         </div>
     </AppLayout>
 </template>
+
+
+

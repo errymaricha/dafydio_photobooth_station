@@ -27,6 +27,7 @@ class DemoWorkflowSeederTest extends TestCase
             'PO-DEMO-QUEUED',
             'PO-DEMO-FAILED',
             'PO-DEMO-PRINTED',
+            'PO-EXAMPLE-001',
         ];
 
         $this->seed(DatabaseSeeder::class);
@@ -45,16 +46,16 @@ class DemoWorkflowSeederTest extends TestCase
         ksort($firstOrderIds);
 
         $this->assertCount(6, $firstSessionIds);
-        $this->assertCount(3, $firstOrderIds);
+        $this->assertCount(4, $firstOrderIds);
 
         $this->assertDatabaseCount('photo_sessions', 6);
         $this->assertDatabaseCount('session_photos', 12);
         $this->assertDatabaseCount('edit_jobs', 5);
         $this->assertDatabaseCount('rendered_outputs', 4);
-        $this->assertDatabaseCount('print_orders', 3);
-        $this->assertDatabaseCount('print_order_items', 3);
-        $this->assertDatabaseCount('print_queue_jobs', 3);
-        $this->assertDatabaseCount('print_logs', 3);
+        $this->assertDatabaseCount('print_orders', 4);
+        $this->assertDatabaseCount('print_order_items', 5);
+        $this->assertDatabaseCount('print_queue_jobs', 4);
+        $this->assertDatabaseCount('print_logs', 4);
         $this->assertDatabaseCount('asset_files', 28);
 
         foreach ($sessionCodes as $sessionCode) {
@@ -77,6 +78,11 @@ class DemoWorkflowSeederTest extends TestCase
         $this->assertDatabaseHas('print_orders', [
             'order_code' => 'PO-DEMO-PRINTED',
             'status' => 'printed',
+        ]);
+        $this->assertDatabaseHas('print_orders', [
+            'order_code' => 'PO-EXAMPLE-001',
+            'status' => 'submitted',
+            'payment_status' => 'unpaid',
         ]);
         $this->assertDatabaseHas('print_queue_jobs', [
             'status' => 'failed',
@@ -102,8 +108,9 @@ class DemoWorkflowSeederTest extends TestCase
         $this->assertSame($firstOrderIds, $secondOrderIds);
         $this->assertDatabaseCount('photo_sessions', 6);
         $this->assertDatabaseCount('session_photos', 12);
-        $this->assertDatabaseCount('print_orders', 3);
-        $this->assertDatabaseCount('print_queue_jobs', 3);
-        $this->assertDatabaseCount('print_logs', 3);
+        $this->assertDatabaseCount('print_orders', 4);
+        $this->assertDatabaseCount('print_order_items', 5);
+        $this->assertDatabaseCount('print_queue_jobs', 4);
+        $this->assertDatabaseCount('print_logs', 4);
     }
 }

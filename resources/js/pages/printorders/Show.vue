@@ -110,11 +110,11 @@ onBeforeUnmount(() => {
         title="Print Order Detail"
         subtitle="Lihat ringkasan order, file hasil render, dan status proses cetak."
     >
-        <div class="mb-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+        <div class="mb-4 flex flex-wrap items-center gap-3 text-xs text-[#6d6b77]">
             <span>Synced: {{ lastSyncedAt ?? '-' }}</span>
             <button
                 type="button"
-                class="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100"
+                class="rounded-lg border border-[#d8d4e7] px-3 py-2 font-semibold text-[#2f2b3dcc] hover:bg-[#f5f5f9]"
                 :disabled="refreshing"
                 @click="loadOrder(true)"
             >
@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
             </button>
         </div>
 
-        <div v-if="loading" class="text-sm text-slate-500">
+        <div v-if="loading" class="text-sm text-[#6d6b77]">
             Loading print order...
         </div>
 
@@ -136,7 +136,7 @@ onBeforeUnmount(() => {
         <div v-else class="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
             <div class="space-y-6">
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div
                         class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
@@ -144,7 +144,7 @@ onBeforeUnmount(() => {
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
                                 <h2
-                                    class="text-xl font-semibold text-slate-900"
+                                    class="text-xl font-semibold text-[#2f2b3dcc]"
                                 >
                                     {{ order.order_code }}
                                 </h2>
@@ -154,7 +154,7 @@ onBeforeUnmount(() => {
                             </div>
 
                             <div
-                                class="grid gap-2 text-sm text-slate-500 md:grid-cols-2"
+                                class="grid gap-2 text-sm text-[#6d6b77] md:grid-cols-2"
                             >
                                 <p>
                                     Payment: {{ order.payment_status ?? '-' }}
@@ -165,13 +165,13 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
 
-                        <div class="rounded-xl bg-slate-50 p-4 text-right">
+                        <div class="rounded-xl bg-[#f5f5f9] p-4 text-right">
                             <div
-                                class="text-xs tracking-wide text-slate-400 uppercase"
+                                class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                             >
                                 Total
                             </div>
-                            <div class="mt-1 text-2xl font-semibold text-slate-900">
+                            <div class="mt-1 text-2xl font-semibold text-[#2f2b3dcc]">
                                 {{ formatAmount(order.total_amount) }}
                             </div>
                         </div>
@@ -179,16 +179,16 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div class="mb-4 flex items-center justify-between gap-3">
-                        <h3 class="text-lg font-semibold text-slate-900">
+                        <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                             Order Items
                         </h3>
 
                         <Link
                             :href="printQueueRoutes.index.url()"
-                            class="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            class="text-sm font-medium text-[#7367f0] hover:text-[#685dd8]"
                         >
                             Open Queue
                         </Link>
@@ -205,16 +205,16 @@ onBeforeUnmount(() => {
                         <div
                             v-for="item in order.items"
                             :key="item.id"
-                            class="rounded-2xl border border-slate-200 p-4"
+                            class="rounded-2xl border border-[#e8e6ef] p-4"
                         >
                             <div
                                 class="mb-3 flex items-center justify-between gap-3"
                             >
                                 <div>
-                                    <div class="font-medium text-slate-900">
+                                    <div class="font-medium text-[#2f2b3dcc]">
                                         Item #{{ item.id }}
                                     </div>
-                                    <div class="text-sm text-slate-500">
+                                    <div class="text-sm text-[#6d6b77]">
                                         {{ item.paper_size ?? '-' }} •
                                         {{ item.copies ?? 0 }} copies
                                     </div>
@@ -227,7 +227,7 @@ onBeforeUnmount(() => {
                                 v-if="item.file_url"
                                 :src="item.file_url"
                                 alt="print order item"
-                                class="w-full rounded-xl border border-slate-200 object-cover"
+                                class="w-full rounded-xl border border-[#e8e6ef] object-cover"
                             />
                         </div>
                     </div>
@@ -236,20 +236,20 @@ onBeforeUnmount(() => {
 
             <div class="space-y-6">
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
-                    <h3 class="mb-4 text-lg font-semibold text-slate-900">
+                    <h3 class="mb-4 text-lg font-semibold text-[#2f2b3dcc]">
                         Routing Info
                     </h3>
 
-                    <div class="space-y-4 text-sm text-slate-600">
+                    <div class="space-y-4 text-sm text-[#6d6b77]">
                         <div>
                             <div
-                                class="text-xs tracking-wide text-slate-400 uppercase"
+                                class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                             >
                                 Session
                             </div>
-                            <div class="mt-1 font-medium text-slate-900">
+                            <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                 {{ order.session?.session_code ?? '-' }}
                             </div>
                             <Link
@@ -257,7 +257,7 @@ onBeforeUnmount(() => {
                                 :href="
                                     sessionsRoutes.show.url(order.session.id)
                                 "
-                                class="mt-1 inline-block text-sm font-medium text-blue-600 hover:text-blue-700"
+                                class="mt-1 inline-block text-sm font-medium text-[#7367f0] hover:text-[#685dd8]"
                             >
                                 Open Session
                             </Link>
@@ -265,48 +265,48 @@ onBeforeUnmount(() => {
 
                         <div>
                             <div
-                                class="text-xs tracking-wide text-slate-400 uppercase"
+                                class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                             >
                                 Printer
                             </div>
-                            <div class="mt-1 font-medium text-slate-900">
+                            <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                 {{ order.printer?.name ?? 'Belum ditentukan' }}
                             </div>
-                            <div class="mt-1 text-xs text-slate-500">
+                            <div class="mt-1 text-xs text-[#6d6b77]">
                                 {{ order.printer?.status ?? 'unassigned' }}
                             </div>
                         </div>
 
                         <div
-                            class="grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4"
+                            class="grid grid-cols-2 gap-3 rounded-xl bg-[#f5f5f9] p-4"
                         >
                             <div>
                                 <div
-                                    class="text-xs tracking-wide text-slate-400 uppercase"
+                                    class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                                 >
                                     Subtotal
                                 </div>
-                                <div class="mt-1 font-medium text-slate-900">
+                                <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                     {{ formatAmount(order.subtotal_amount) }}
                                 </div>
                             </div>
                             <div>
                                 <div
-                                    class="text-xs tracking-wide text-slate-400 uppercase"
+                                    class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                                 >
                                     Discount
                                 </div>
-                                <div class="mt-1 font-medium text-slate-900">
+                                <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                     {{ formatAmount(order.discount_amount) }}
                                 </div>
                             </div>
                             <div class="col-span-2">
                                 <div
-                                    class="text-xs tracking-wide text-slate-400 uppercase"
+                                    class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                                 >
                                     Total
                                 </div>
-                                <div class="mt-1 font-medium text-slate-900">
+                                <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                     {{ formatAmount(order.total_amount) }}
                                 </div>
                             </div>
@@ -317,3 +317,4 @@ onBeforeUnmount(() => {
         </div>
     </AppLayout>
 </template>
+

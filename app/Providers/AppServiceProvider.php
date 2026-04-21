@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\PhotoSession;
+use App\Models\PrintOrder;
 use App\Models\User;
+use App\Observers\PhotoSessionObserver;
+use App\Observers\PrintOrderObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureApiDocumentationAccess();
+        $this->registerObservers();
     }
 
     /**
@@ -57,5 +62,11 @@ class AppServiceProvider extends ServiceProvider
     protected function configureApiDocumentationAccess(): void
     {
         Gate::define('viewApiDocs', fn (?User $user = null): bool => app()->environment(['local', 'testing']));
+    }
+
+    protected function registerObservers(): void
+    {
+        PhotoSession::observe(PhotoSessionObserver::class);
+        PrintOrder::observe(PrintOrderObserver::class);
     }
 }

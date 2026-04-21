@@ -9,18 +9,18 @@ const classes = computed(() => {
   const status = props.status?.toLowerCase()
 
   if (['success', 'completed', 'online', 'done', 'ready', 'printed', 'ready_print'].includes(status)) {
-    return 'bg-green-100 text-green-700'
+    return 'bg-[#e8f7ef] text-[#28c76f]'
   }
 
   if (['pending', 'queued', 'processing', 'warning', 'editing', 'printing', 'queued_print', 'created'].includes(status)) {
-    return 'bg-amber-100 text-amber-700'
+    return 'bg-[#fff1e3] text-[#ff9f43]'
   }
 
   if (['failed', 'error', 'offline', 'failed_print'].includes(status)) {
-    return 'bg-red-100 text-red-700'
+    return 'bg-[#ffe9ea] text-[#ea5455]'
   }
 
-  return 'bg-slate-100 text-slate-700'
+  return 'bg-[#f1f0f5] text-[#6d6b77]'
 })
 </script>
 

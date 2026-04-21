@@ -7,6 +7,7 @@ use App\Models\Printer;
 use App\Models\Role;
 use App\Models\SessionVoucher;
 use App\Models\Station;
+use App\Models\SubscriptionPackage;
 use App\Models\Template;
 use App\Models\TemplateSlot;
 use App\Models\User;
@@ -58,6 +59,8 @@ class DefaultSeederIdempotencyTest extends TestCase
         $this->assertDatabaseCount('printers', 1);
         $this->assertDatabaseCount('templates', 1);
         $this->assertDatabaseCount('template_slots', 2);
+        $this->assertDatabaseCount('subscription_packages', 3);
+        $this->assertDatabaseCount('finance_accounts', 7);
         $this->assertDatabaseCount('session_vouchers', 5);
         $this->assertDatabaseCount('vouchers', 5);
         $this->assertDatabaseHas('vouchers', [
@@ -95,6 +98,16 @@ class DefaultSeederIdempotencyTest extends TestCase
         $this->assertSame(
             5,
             Voucher::query()->count(),
+        );
+
+        $this->assertTrue(
+            SubscriptionPackage::query()->where('package_code', 'REGULAR-30')->exists(),
+        );
+        $this->assertTrue(
+            SubscriptionPackage::query()->where('package_code', 'PREMIUM-30')->exists(),
+        );
+        $this->assertTrue(
+            SubscriptionPackage::query()->where('package_code', 'PREMIUM-365')->exists(),
         );
     }
 }

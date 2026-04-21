@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Editor\CustomerCloudAccountController;
 use App\Http\Controllers\Api\Editor\CustomerSubscriptionController;
 use App\Http\Controllers\Api\Editor\DashboardController;
 use App\Http\Controllers\Api\Editor\EditJobController;
+use App\Http\Controllers\Api\Editor\FinanceController;
 use App\Http\Controllers\Api\Editor\PricingController;
 use App\Http\Controllers\Api\Editor\PrinterController;
 use App\Http\Controllers\Api\Editor\PrintLogController;
@@ -83,6 +84,11 @@ Route::prefix('editor')
         Route::delete('/templates/{template}/slots/{slotIndex}', [TemplateController::class, 'destroySlot']);
 
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/finance/accounts', [FinanceController::class, 'accounts']);
+        Route::get('/finance/reports/daily-pnl', [FinanceController::class, 'dailyPnl']);
+        Route::get('/finance/transactions', [FinanceController::class, 'transactions']);
+        Route::get('/finance/expenses', [FinanceController::class, 'expenses']);
+        Route::post('/finance/expenses', [FinanceController::class, 'storeExpense']);
         Route::get('/customers', [CustomerCloudAccountController::class, 'index']);
         Route::post('/customers/cloud-account', [CustomerCloudAccountController::class, 'upsert']);
         Route::get('/customers/{customerWhatsapp}/history', [CustomerCloudAccountController::class, 'history']);

@@ -181,7 +181,7 @@ const getVoucherHealth = (voucher: LibraryVoucherItem): {
     if (voucher.status === 'inactive') {
         return {
             label: 'Inactive',
-            className: 'border-slate-300 bg-slate-100 text-slate-600',
+            className: 'border-[#d8d4e7] bg-[#f1f0f5] text-[#6d6b77]',
         };
     }
 
@@ -424,16 +424,16 @@ onMounted(async () => {
 <template>
     <AppLayout title="Vouchers" subtitle="Master voucher before payment (DD-MM-YYYY).">
         <div class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <h2 class="text-lg font-semibold text-slate-900">Create Master Voucher</h2>
-                <p class="mt-1 text-sm text-slate-500">Tanggal pakai format DD-MM-YYYY.</p>
+            <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
+                <h2 class="text-lg font-semibold text-[#2f2b3dcc]">Create Master Voucher</h2>
+                <p class="mt-1 text-sm text-[#6d6b77]">Tanggal pakai format DD-MM-YYYY.</p>
 
                 <div v-if="feedback" class="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">{{ feedback }}</div>
                 <div v-if="errorMessage" class="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{{ errorMessage }}</div>
 
                 <div class="mt-4 space-y-3">
-                    <input v-model="voucherCode" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Voucher code" />
-                    <select v-model="voucherType" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    <input v-model="voucherCode" type="text" class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Voucher code" />
+                    <select v-model="voucherType" class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm">
                         <option value="promo">Promo</option>
                         <option value="skip">Skip</option>
                         <option value="override">Override</option>
@@ -441,38 +441,38 @@ onMounted(async () => {
                     </select>
 
                     <div class="grid gap-2 md:grid-cols-2">
-                        <input v-model="validFrom" type="text" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Valid From (DD-MM-YYYY)" />
-                        <input v-model="validUntil" type="text" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Valid Until (DD-MM-YYYY)" />
+                        <input v-model="validFrom" type="text" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Valid From (DD-MM-YYYY)" />
+                        <input v-model="validUntil" type="text" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Valid Until (DD-MM-YYYY)" />
                     </div>
 
-                    <input v-model="maxUsage" type="number" min="1" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Max usage (optional)" />
+                    <input v-model="maxUsage" type="number" min="1" class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Max usage (optional)" />
 
                     <div class="grid gap-2 md:grid-cols-2">
-                        <select v-model="discountType" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                        <select v-model="discountType" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm">
                             <option value="">No Discount</option>
                             <option value="percent">Percent (%)</option>
                             <option value="fixed">Fixed Amount</option>
                         </select>
-                        <input v-model="discountValue" type="number" min="0" step="0.01" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Discount value" />
+                        <input v-model="discountValue" type="number" min="0" step="0.01" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Discount value" />
                     </div>
 
                     <div class="grid gap-2 md:grid-cols-2">
-                        <input v-model="maxDiscountAmount" type="number" min="0" step="0.01" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Max discount amount" />
-                        <input v-model="minPurchaseAmount" type="number" min="0" step="0.01" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Min purchase amount" />
+                        <input v-model="maxDiscountAmount" type="number" min="0" step="0.01" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Max discount amount" />
+                        <input v-model="minPurchaseAmount" type="number" min="0" step="0.01" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Min purchase amount" />
                     </div>
 
-                    <textarea v-model="voucherNotes" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Notes" />
+                    <textarea v-model="voucherNotes" rows="2" class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Notes" />
 
-                    <button type="button" class="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50" :disabled="submitting" @click="createVoucher">
+                    <button type="button" class="w-full rounded-lg bg-[#7367f0] px-3 py-2 text-sm font-semibold text-white hover:bg-[#685dd8] disabled:opacity-50" :disabled="submitting" @click="createVoucher">
                         {{ submitting ? 'Creating...' : 'Create Voucher' }}
                     </button>
                 </div>
             </div>
 
             <div class="space-y-6">
-                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h2 class="text-lg font-semibold text-slate-900">Payment Quote Simulator</h2>
-                    <p class="mt-1 text-sm text-slate-500">
+                <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
+                    <h2 class="text-lg font-semibold text-[#2f2b3dcc]">Payment Quote Simulator</h2>
+                    <p class="mt-1 text-sm text-[#6d6b77]">
                         Simulasi harga akhir sebelum payment Android dimulai.
                     </p>
 
@@ -482,18 +482,18 @@ onMounted(async () => {
                             type="number"
                             min="0"
                             step="0.01"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                             placeholder="Subtotal amount (contoh: 100000)"
                         />
                         <input
                             v-model="quoteVoucherCode"
                             type="text"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                             placeholder="Voucher code (opsional)"
                         />
                         <button
                             type="button"
-                            class="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50"
+                            class="w-full rounded-lg bg-[#7367f0] px-3 py-2 text-sm font-semibold text-white hover:bg-[#685dd8] disabled:opacity-50"
                             :disabled="quoteLoading"
                             @click="runQuote"
                         >
@@ -501,7 +501,7 @@ onMounted(async () => {
                         </button>
                         <button
                             type="button"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                             @click="clearQuote"
                         >
                             Reset Quote
@@ -510,7 +510,7 @@ onMounted(async () => {
 
                     <div
                         v-if="quoteResult"
-                        class="mt-4 grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700"
+                        class="mt-4 grid gap-2 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3 text-sm text-[#2f2b3dcc]"
                     >
                         <div>Subtotal: {{ formatCurrency(quoteResult.subtotal_amount) }}</div>
                         <div>Discount: {{ formatCurrency(quoteResult.discount_amount) }}</div>
@@ -521,26 +521,26 @@ onMounted(async () => {
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
                 <div class="mb-4 flex gap-2">
-                    <input v-model="search" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Search code/type" />
-                    <select v-model="filterStatus" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                    <input v-model="search" type="text" class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Search code/type" />
+                    <select v-model="filterStatus" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm">
                         <option value="all">All</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
-                    <button type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700" @click="loadData(true)">Refresh</button>
+                    <button type="button" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc]" @click="loadData(true)">Refresh</button>
                 </div>
 
-                <div v-if="loading" class="text-sm text-slate-500">Loading vouchers...</div>
+                <div v-if="loading" class="text-sm text-[#6d6b77]">Loading vouchers...</div>
                 <div v-else-if="!filteredVouchers.length">
                     <EmptyState title="Voucher belum ada" message="Master voucher akan muncul di sini." />
                 </div>
                 <div v-else class="flex flex-col gap-3">
-                    <div v-for="voucher in filteredVouchers" :key="voucher.id" class="rounded-lg border border-slate-200 p-3">
+                    <div v-for="voucher in filteredVouchers" :key="voucher.id" class="rounded-lg border border-[#e8e6ef] p-3">
                         <div class="flex items-start justify-between gap-3">
-                            <div class="text-xs text-slate-500">
-                                <div class="text-sm font-semibold text-slate-900">{{ voucher.voucher_code }}</div>
+                            <div class="text-xs text-[#6d6b77]">
+                                <div class="text-sm font-semibold text-[#2f2b3dcc]">{{ voucher.voucher_code }}</div>
                                 <div>Type: {{ voucher.voucher_type }}</div>
                                 <div>Valid: {{ voucher.valid_from ?? '-' }} → {{ voucher.valid_until ?? '-' }}</div>
                                 <div>Usage: {{ voucher.used_count ?? 0 }} / {{ voucher.max_usage ?? '∞' }}</div>
@@ -554,19 +554,19 @@ onMounted(async () => {
                                 >
                                     {{ getVoucherHealth(voucher).label }}
                                 </span>
-                                <button type="button" class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600" @click="copyVoucherCode(voucher.voucher_code)">Copy Code</button>
-                                <button type="button" class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600" @click="useVoucherInQuote(voucher.voucher_code)">Simulate</button>
-                                <button type="button" class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600" @click="startEdit(voucher)">Edit</button>
-                                <button v-if="voucher.status === 'active'" type="button" class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600" :disabled="deactivatingId === voucher.id" @click="deactivateVoucherAction(voucher.id)">
+                                <button type="button" class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77]" @click="copyVoucherCode(voucher.voucher_code)">Copy Code</button>
+                                <button type="button" class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77]" @click="useVoucherInQuote(voucher.voucher_code)">Simulate</button>
+                                <button type="button" class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77]" @click="startEdit(voucher)">Edit</button>
+                                <button v-if="voucher.status === 'active'" type="button" class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77]" :disabled="deactivatingId === voucher.id" @click="deactivateVoucherAction(voucher.id)">
                                     {{ deactivatingId === voucher.id ? 'Processing...' : 'Deactivate' }}
                                 </button>
                             </div>
                         </div>
 
-                        <div v-if="editingId === voucher.id" class="mt-3 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                        <div v-if="editingId === voucher.id" class="mt-3 space-y-2 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3">
                             <div class="grid gap-2 md:grid-cols-2">
-                                <input v-model="editVoucherCode" type="text" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
-                                <select v-model="editVoucherType" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                                <input v-model="editVoucherCode" type="text" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" />
+                                <select v-model="editVoucherType" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm">
                                     <option value="promo">Promo</option>
                                     <option value="skip">Skip</option>
                                     <option value="override">Override</option>
@@ -574,32 +574,32 @@ onMounted(async () => {
                                 </select>
                             </div>
                             <div class="grid gap-2 md:grid-cols-2">
-                                <input v-model="editValidFrom" type="text" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="DD-MM-YYYY" />
-                                <input v-model="editValidUntil" type="text" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="DD-MM-YYYY" />
+                                <input v-model="editValidFrom" type="text" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="DD-MM-YYYY" />
+                                <input v-model="editValidUntil" type="text" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="DD-MM-YYYY" />
                             </div>
                             <div class="grid gap-2 md:grid-cols-2">
-                                <select v-model="editStatus" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                                <select v-model="editStatus" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm">
                                     <option value="active">Active</option>
                                     <option value="inactive">Inactive</option>
                                 </select>
-                                <input v-model="editMaxUsage" type="number" min="1" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Max usage" />
+                                <input v-model="editMaxUsage" type="number" min="1" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Max usage" />
                             </div>
                             <div class="grid gap-2 md:grid-cols-2">
-                                <select v-model="editDiscountType" class="rounded-lg border border-slate-300 px-3 py-2 text-sm">
+                                <select v-model="editDiscountType" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm">
                                     <option value="">No Discount</option>
                                     <option value="percent">Percent (%)</option>
                                     <option value="fixed">Fixed Amount</option>
                                 </select>
-                                <input v-model="editDiscountValue" type="number" min="0" step="0.01" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Discount value" />
+                                <input v-model="editDiscountValue" type="number" min="0" step="0.01" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Discount value" />
                             </div>
                             <div class="grid gap-2 md:grid-cols-2">
-                                <input v-model="editMaxDiscountAmount" type="number" min="0" step="0.01" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Max discount amount" />
-                                <input v-model="editMinPurchaseAmount" type="number" min="0" step="0.01" class="rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Min purchase amount" />
+                                <input v-model="editMaxDiscountAmount" type="number" min="0" step="0.01" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Max discount amount" />
+                                <input v-model="editMinPurchaseAmount" type="number" min="0" step="0.01" class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Min purchase amount" />
                             </div>
-                            <textarea v-model="editNotes" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" placeholder="Notes" />
+                            <textarea v-model="editNotes" rows="2" class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm" placeholder="Notes" />
                             <div class="flex justify-end gap-2">
-                                <button type="button" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-600" @click="cancelEdit">Cancel</button>
-                                <button type="button" class="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50" :disabled="updating" @click="updateVoucherAction">{{ updating ? 'Saving...' : 'Save' }}</button>
+                                <button type="button" class="rounded-lg border border-[#d8d4e7] px-3 py-1.5 text-xs font-semibold text-[#6d6b77]" @click="cancelEdit">Cancel</button>
+                                <button type="button" class="rounded-lg bg-[#7367f0] px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50" :disabled="updating" @click="updateVoucherAction">{{ updating ? 'Saving...' : 'Save' }}</button>
                             </div>
                         </div>
                     </div>
@@ -609,3 +609,4 @@ onMounted(async () => {
         </div>
     </AppLayout>
 </template>
+

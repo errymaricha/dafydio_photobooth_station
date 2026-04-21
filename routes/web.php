@@ -29,6 +29,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/printers/{id}', fn (string $id) => Inertia::render('printers/Show', ['printerId' => $id]))->name('printers.show');
     Route::get('/print-logs', fn () => Inertia::render('printlogs/Index'))->name('print-logs.index');
     Route::get('/pricing', fn () => Inertia::render('pricing/Index'))->name('pricing.index');
+    Route::get('/finance', fn () => Inertia::render('finance/Index'))->name('finance.index');
+    Route::get('/finance/transactions', fn () => Inertia::render('finance/Transactions'))->name('finance.transactions');
+    Route::get('/finance/expenses', fn () => Inertia::render('finance/Expenses'))->name('finance.expenses');
     Route::get('/vouchers', fn () => Inertia::render('vouchers/Index'))->name('vouchers.index');
     Route::get('/clients', fn () => Inertia::render('clients/Index'))->name('clients.index');
     Route::get('/clients/{customerWhatsapp}', fn (string $customerWhatsapp) => Inertia::render('clients/Show', ['customerWhatsapp' => $customerWhatsapp]))->name('clients.show');

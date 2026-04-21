@@ -152,8 +152,8 @@ onBeforeUnmount(() => {
                 class="rounded-lg border px-3 py-2 text-xs font-semibold transition"
                 :class="
                     filter === item.key
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                        ? 'border-[#7367f0] bg-[#7367f0] text-white'
+                        : 'border-[#e8e6ef] bg-white text-[#6d6b77] hover:bg-[#f5f5f9]'
                 "
                 @click="filter = item.key"
             >
@@ -168,12 +168,12 @@ onBeforeUnmount(() => {
                 <input
                     v-model="search"
                     type="text"
-                    class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm md:max-w-sm"
+                    class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm md:max-w-sm"
                     placeholder="Cari printer / station"
                 />
                 <select
                     v-model="filter"
-                    class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-44"
+                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm md:w-44"
                 >
                     <option
                         v-for="option in statusOptions"
@@ -185,11 +185,11 @@ onBeforeUnmount(() => {
                 </select>
             </div>
 
-            <div class="flex items-center gap-3 text-xs text-slate-500">
+            <div class="flex items-center gap-3 text-xs text-[#6d6b77]">
                 <span>Synced: {{ lastSyncedAt ?? '-' }}</span>
                 <button
                     type="button"
-                    class="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100"
+                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                     :disabled="refreshing"
                     @click="loadPrinters(true)"
                 >
@@ -198,7 +198,7 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <div v-if="loading" class="text-sm text-slate-500">
+        <div v-if="loading" class="text-sm text-[#6d6b77]">
             Loading printers...
         </div>
 
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div class="text-xs text-slate-500 md:col-span-2 xl:col-span-3">
+            <div class="text-xs text-[#6d6b77] md:col-span-2 xl:col-span-3">
                 Menampilkan {{ filteredPrinters.length }} dari
                 {{ printers.length }} printer
             </div>
@@ -218,14 +218,14 @@ onBeforeUnmount(() => {
             <div
                 v-for="printer in filteredPrinters"
                 :key="printer.id"
-                class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
             >
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <h2 class="text-lg font-semibold">
                             {{ printer.printer_name }}
                         </h2>
-                        <p class="mt-1 text-sm text-slate-500">
+                        <p class="mt-1 text-sm text-[#6d6b77]">
                             Station: {{ printer.station?.code ?? '-' }}
                         </p>
                     </div>
@@ -240,8 +240,8 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div class="mt-4 grid grid-cols-2 gap-3">
-                    <div class="rounded-lg bg-slate-50 p-3">
-                        <div class="text-xs text-slate-500">Queue</div>
+                    <div class="rounded-lg bg-[#f5f5f9] p-3">
+                        <div class="text-xs text-[#6d6b77]">Queue</div>
                         <div class="mt-1 text-xl font-semibold">
                             {{
                                 (printer.queue?.pending ?? 0) +
@@ -250,8 +250,8 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div class="rounded-lg bg-slate-50 p-3">
-                        <div class="text-xs text-slate-500">Failed Jobs</div>
+                    <div class="rounded-lg bg-[#f5f5f9] p-3">
+                        <div class="text-xs text-[#6d6b77]">Failed Jobs</div>
                         <div class="mt-1 text-xl font-semibold">
                             {{ printer.queue?.failed ?? 0 }}
                         </div>
@@ -259,13 +259,13 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div class="mt-4 flex items-center justify-between text-sm">
-                    <span class="truncate text-slate-500">
+                    <span class="truncate text-[#6d6b77]">
                         {{ printer.last_error ?? 'Tidak ada error terbaru.' }}
                     </span>
 
                     <Link
                         :href="printerRoutes.show.url(printer.id)"
-                        class="font-medium text-blue-600 hover:text-blue-700"
+                        class="font-medium text-[#7367f0] hover:text-[#685dd8]"
                     >
                         Detail
                     </Link>
@@ -274,3 +274,4 @@ onBeforeUnmount(() => {
         </div>
     </AppLayout>
 </template>
+

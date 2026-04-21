@@ -7,9 +7,9 @@ defineProps<{
 </script>
 
 <template>
-  <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-    <div class="text-sm text-slate-500">{{ label }}</div>
-    <div class="mt-2 text-3xl font-bold text-slate-900">{{ value }}</div>
-    <div v-if="helper" class="mt-1 text-xs text-slate-400">{{ helper }}</div>
+  <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
+    <div class="text-sm text-[#6d6b77]">{{ label }}</div>
+    <div class="mt-2 text-3xl font-bold text-[#2f2b3dcc]">{{ value }}</div>
+    <div v-if="helper" class="mt-1 text-xs text-[#b3b1bb]">{{ helper }}</div>
   </div>
 </template>

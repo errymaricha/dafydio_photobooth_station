@@ -4,16 +4,18 @@ namespace App\Http\Controllers\Api\Editor;
 
 use App\Http\Controllers\Controller;
 use App\Models\PhotoSession;
+use App\Models\Printer;
 use App\Models\PrintLog;
 use App\Models\PrintOrder;
 use App\Models\PrintQueueJob;
-use App\Models\Printer;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $today = now()->toDateString();
+        $sevenDaysAgo = now()->subDays(6)->toDateString();
 
         $recentSessions = PhotoSession::with(['station', 'device'])
             ->latest()
@@ -112,6 +114,44 @@ class DashboardController extends Controller
 
         $printerBase = Printer::query();
 
+        $financeTodayRaw = DB::table('finance_journal_entries as entries')
+            ->join('finance_journal_lines as lines', 'lines.journal_entry_id', '=', 'entries.id')
+            ->join('finance_accounts as accounts', 'accounts.id', '=', 'lines.account_id')
+            ->where('entries.entry_date', $today)
+            ->selectRaw("coalesce(sum(case when accounts.account_type = 'revenue' then lines.credit - lines.debit else 0 end), 0) as revenue_amount")
+            ->selectRaw("coalesce(sum(case when accounts.account_type = 'expense' then lines.debit - lines.credit else 0 end), 0) as expense_amount")
+            ->first();
+
+        $financeTodayRevenue = round((float) ($financeTodayRaw->revenue_amount ?? 0), 2);
+        $financeTodayExpense = round((float) ($financeTodayRaw->expense_amount ?? 0), 2);
+        $financeTodayProfit = round($financeTodayRevenue - $financeTodayExpense, 2);
+
+        $financeLastSevenDays = DB::table('finance_journal_entries as entries')
+            ->join('finance_journal_lines as lines', 'lines.journal_entry_id', '=', 'entries.id')
+            ->join('finance_accounts as accounts', 'accounts.id', '=', 'lines.account_id')
+            ->whereBetween('entries.entry_date', [$sevenDaysAgo, $today])
+            ->groupBy('entries.entry_date')
+            ->orderBy('entries.entry_date')
+            ->get([
+                'entries.entry_date',
+                DB::raw("coalesce(sum(case when accounts.account_type = 'revenue' then lines.credit - lines.debit else 0 end), 0) as revenue_amount"),
+                DB::raw("coalesce(sum(case when accounts.account_type = 'expense' then lines.debit - lines.credit else 0 end), 0) as expense_amount"),
+            ])
+            ->map(function ($row): array {
+                $revenue = round((float) $row->revenue_amount, 2);
+                $expense = round((float) $row->expense_amount, 2);
+                $profit = round($revenue - $expense, 2);
+
+                return [
+                    'entry_date' => $row->entry_date,
+                    'revenue_amount' => $revenue,
+                    'expense_amount' => $expense,
+                    'gross_profit_amount' => $profit,
+                    'net_profit_amount' => $profit,
+                ];
+            })
+            ->values();
+
         return response()->json([
             'sessions' => [
                 'uploaded_today' => PhotoSession::where('status', 'uploaded')
@@ -160,6 +200,15 @@ class DashboardController extends Controller
                 'ready' => (clone $printerBase)->where('status', 'ready')->count(),
                 'printing' => (clone $printerBase)->where('status', 'printing')->count(),
                 'error' => (clone $printerBase)->where('status', 'error')->count(),
+            ],
+            'finance' => [
+                'today' => [
+                    'revenue_amount' => $financeTodayRevenue,
+                    'expense_amount' => $financeTodayExpense,
+                    'gross_profit_amount' => $financeTodayProfit,
+                    'net_profit_amount' => $financeTodayProfit,
+                ],
+                'last_7_days' => $financeLastSevenDays,
             ],
 
             'recent_sessions' => $recentSessions,

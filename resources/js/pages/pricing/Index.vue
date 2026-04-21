@@ -143,20 +143,20 @@ onMounted(async () => {
 <template>
     <AppLayout title="Pricing" subtitle="Master harga photobooth untuk sinkronisasi Android.">
         <div class="mx-auto max-w-3xl space-y-4">
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                        <h2 class="text-lg font-semibold text-slate-900">
+                        <h2 class="text-lg font-semibold text-[#2f2b3dcc]">
                             Station Pricing
                         </h2>
-                        <p class="text-sm text-slate-500">
+                        <p class="text-sm text-[#6d6b77]">
                             Station: {{ stationName }} ({{ stationCode }})
                         </p>
                     </div>
 
                     <button
                         type="button"
-                        class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                        class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5] disabled:opacity-50"
                         :disabled="loading"
                         @click="loadPricing"
                     >
@@ -179,7 +179,7 @@ onMounted(async () => {
 
                 <div class="mt-4 grid gap-3 md:grid-cols-2">
                     <label class="space-y-1">
-                        <span class="text-sm font-medium text-slate-700">
+                        <span class="text-sm font-medium text-[#2f2b3dcc]">
                             Harga Photobooth
                         </span>
                         <input
@@ -187,13 +187,13 @@ onMounted(async () => {
                             type="number"
                             min="0"
                             step="0.01"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                             placeholder="35000"
                         />
                     </label>
 
                     <label class="space-y-1">
-                        <span class="text-sm font-medium text-slate-700">
+                        <span class="text-sm font-medium text-[#2f2b3dcc]">
                             Harga Additional Print
                         </span>
                         <input
@@ -201,7 +201,7 @@ onMounted(async () => {
                             type="number"
                             min="0"
                             step="0.01"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                             placeholder="5000"
                         />
                     </label>
@@ -209,14 +209,14 @@ onMounted(async () => {
 
                 <div class="mt-3 grid gap-3 md:grid-cols-[180px_1fr]">
                     <label class="space-y-1">
-                        <span class="text-sm font-medium text-slate-700">
+                        <span class="text-sm font-medium text-[#2f2b3dcc]">
                             Currency
                         </span>
                         <input
                             v-model="currencyCode"
                             type="text"
                             maxlength="10"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm uppercase"
+                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm uppercase"
                             placeholder="IDR"
                         />
                     </label>
@@ -224,7 +224,7 @@ onMounted(async () => {
                     <div class="flex items-end">
                         <button
                             type="button"
-                            class="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 disabled:opacity-50 md:w-auto"
+                            class="w-full rounded-lg bg-[#7367f0] px-3 py-2 text-sm font-semibold text-white hover:bg-[#685dd8] disabled:opacity-50 md:w-auto"
                             :disabled="saving || loading"
                             @click="savePricing"
                         >
@@ -233,17 +233,17 @@ onMounted(async () => {
                     </div>
                 </div>
 
-                <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <h3 class="text-sm font-semibold text-slate-800">
+                <div class="mt-4 rounded-xl border border-[#e8e6ef] bg-[#f5f5f9] p-4">
+                    <h3 class="text-sm font-semibold text-[#2f2b3dcc]">
                         Preview Final Amount
                     </h3>
-                    <p class="mt-1 text-xs text-slate-500">
+                    <p class="mt-1 text-xs text-[#6d6b77]">
                         Simulasi cepat untuk operator sebelum Android request payment.
                     </p>
 
                     <div class="mt-3 grid gap-3 md:grid-cols-[220px_1fr]">
                         <label class="space-y-1">
-                            <span class="text-sm font-medium text-slate-700">
+                            <span class="text-sm font-medium text-[#2f2b3dcc]">
                                 Additional Print Count
                             </span>
                             <input
@@ -251,12 +251,12 @@ onMounted(async () => {
                                 type="number"
                                 min="0"
                                 step="1"
-                                class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                                class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                                 placeholder="0"
                             />
                         </label>
 
-                        <div class="grid gap-1 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-700">
+                        <div class="grid gap-1 rounded-lg border border-[#e8e6ef] bg-white p-3 text-sm text-[#2f2b3dcc]">
                             <div>
                                 Base Photobooth: {{ formatCurrency(basePriceAmount) }}
                             </div>
@@ -266,14 +266,14 @@ onMounted(async () => {
                                 {{ formatCurrency(additionalPrintPriceAmount) }} =
                                 {{ formatCurrency(additionalPrintSubtotal) }}
                             </div>
-                            <div class="pt-1 text-base font-semibold text-slate-900">
+                            <div class="pt-1 text-base font-semibold text-[#2f2b3dcc]">
                                 Total: {{ formatCurrency(finalTotalAmount) }}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <p class="mt-4 text-xs text-slate-500">
+                <p class="mt-4 text-xs text-[#6d6b77]">
                     Last update:
                     {{ lastUpdatedAt ? new Date(lastUpdatedAt).toLocaleString('id-ID') : '-' }}
                 </p>
@@ -281,3 +281,4 @@ onMounted(async () => {
         </div>
     </AppLayout>
 </template>
+

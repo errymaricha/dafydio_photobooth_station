@@ -2,7 +2,6 @@
 import { Form } from '@inertiajs/vue3';
 import { useTemplateRef } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
@@ -22,16 +21,15 @@ const passwordInput = useTemplateRef('passwordInput');
 </script>
 
 <template>
-    <div class="space-y-6">
-        <Heading
-            variant="small"
-            title="Delete account"
-            description="Delete your account and all of its resources"
-        />
-        <div
-            class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
-        >
-            <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
+    <div class="rounded-xl border border-[#ffd5d9] bg-[#fff5f5] p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
+        <div class="mb-4">
+            <h3 class="text-base font-semibold text-[#ea5455]">Delete Account</h3>
+            <p class="mt-1 text-sm text-[#ea5455]">
+                Delete your account and all of its resources.
+            </p>
+        </div>
+        <div class="space-y-4">
+            <div class="relative space-y-0.5 text-[#ea5455]">
                 <p class="font-medium">Warning</p>
                 <p class="text-sm">
                     Please proceed with caution, this cannot be undone.

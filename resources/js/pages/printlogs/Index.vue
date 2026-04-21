@@ -127,8 +127,8 @@ onBeforeUnmount(() => {
                 class="rounded-lg border px-3 py-2 text-xs font-semibold transition"
                 :class="
                     level === item.key
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                        ? 'border-[#7367f0] bg-[#7367f0] text-white'
+                        : 'border-[#e8e6ef] bg-white text-[#6d6b77] hover:bg-[#f5f5f9]'
                 "
                 @click="level = item.key"
             >
@@ -136,13 +136,13 @@ onBeforeUnmount(() => {
             </button>
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
             <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <h2 class="text-lg font-semibold text-slate-900">
+                    <h2 class="text-lg font-semibold text-[#2f2b3dcc]">
                         Activity Logs
                     </h2>
-                    <p class="text-sm text-slate-500">
+                    <p class="text-sm text-[#6d6b77]">
                         Menampilkan event terbaru dari alur print order dan print queue.
                     </p>
                 </div>
@@ -151,13 +151,13 @@ onBeforeUnmount(() => {
                     <input
                         v-model="search"
                         type="text"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                         placeholder="Cari message, order, session, atau printer"
                     />
 
                     <select
                         v-model="level"
-                        class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-48"
+                        class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm md:w-48"
                     >
                         <option
                             v-for="option in levelOptions"
@@ -170,7 +170,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="mb-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+            <div class="mb-4 flex flex-wrap items-center gap-3 text-xs text-[#6d6b77]">
                 <span>Synced: {{ lastSyncedAt ?? '-' }}</span>
                 <span>
                     Menampilkan {{ filteredLogs.length }} dari
@@ -178,7 +178,7 @@ onBeforeUnmount(() => {
                 </span>
                 <button
                     type="button"
-                    class="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100"
+                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                     :disabled="refreshing"
                     @click="loadLogs(true)"
                 >
@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
                 </button>
             </div>
 
-            <div v-if="loading" class="text-sm text-slate-500">
+            <div v-if="loading" class="text-sm text-[#6d6b77]">
                 Loading print logs...
             </div>
 
@@ -201,7 +201,7 @@ onBeforeUnmount(() => {
                 <div
                     v-for="log in filteredLogs"
                     :key="log.id"
-                    class="rounded-2xl border border-slate-200 p-4"
+                    class="rounded-2xl border border-[#e8e6ef] p-4"
                     :class="{
                         'border-rose-200 bg-rose-50/60':
                             (log.log_level ?? '').toLowerCase() === 'error',
@@ -211,12 +211,12 @@ onBeforeUnmount(() => {
                         <div class="min-w-0 flex-1 space-y-3">
                             <div class="flex flex-wrap items-center gap-2">
                                 <StatusBadge :status="log.log_level ?? 'info'" />
-                                <div class="font-medium text-slate-900">
+                                <div class="font-medium text-[#2f2b3dcc]">
                                     {{ log.message ?? 'Log entry' }}
                                 </div>
                             </div>
 
-                            <div class="grid gap-2 text-sm text-slate-500 md:grid-cols-2 xl:grid-cols-4">
+                            <div class="grid gap-2 text-sm text-[#6d6b77] md:grid-cols-2 xl:grid-cols-4">
                                 <p>Created: {{ log.created_at ?? '-' }}</p>
                                 <p>Printer: {{ log.printer?.name ?? '-' }}</p>
                                 <p>Queue Job: {{ log.queue_job?.id ?? '-' }}</p>
@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
 
                             <pre
                                 v-if="log.payload"
-                                class="overflow-x-auto rounded-xl bg-slate-950 px-4 py-3 text-xs leading-6 text-slate-100"
+                                class="overflow-x-auto rounded-xl bg-[#2f2b3d] px-4 py-3 text-xs leading-6 text-[#f5f5f9]"
                             >{{ JSON.stringify(log.payload, null, 2) }}</pre>
                         </div>
 
@@ -233,7 +233,7 @@ onBeforeUnmount(() => {
                             <Link
                                 v-if="log.print_order?.id"
                                 :href="printOrderRoutes.show.url(log.print_order.id)"
-                                class="font-medium text-blue-600 hover:text-blue-700"
+                                class="font-medium text-[#7367f0] hover:text-[#685dd8]"
                             >
                                 {{ log.print_order.order_code ?? 'Open Print Order' }}
                             </Link>
@@ -241,7 +241,7 @@ onBeforeUnmount(() => {
                             <Link
                                 v-if="log.session?.id"
                                 :href="sessionsRoutes.show.url(log.session.id)"
-                                class="font-medium text-slate-700 hover:text-slate-900"
+                                class="font-medium text-[#2f2b3dcc] hover:text-[#2f2b3dcc]"
                             >
                                 {{ log.session.session_code ?? 'Open Session' }}
                             </Link>
@@ -252,3 +252,5 @@ onBeforeUnmount(() => {
         </div>
     </AppLayout>
 </template>
+
+

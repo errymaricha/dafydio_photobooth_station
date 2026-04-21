@@ -500,7 +500,7 @@ const workflowSteps = computed<WorkflowStep[]>(() => {
             key: 'print-order',
             title: 'Print Order',
             description: latestPrintOrder.value
-                ? `${latestPrintOrder.value.order_code} • ${latestPrintOrder.value.status ?? 'unknown'}`
+                ? `${latestPrintOrder.value.order_code} - ${latestPrintOrder.value.status ?? 'unknown'}`
                 : 'Belum ada print order aktif',
             state: latestPrintOrder.value
                 ? ['completed', 'printed'].includes(
@@ -1739,7 +1739,7 @@ onMounted(loadData);
         title="Session Detail"
         subtitle="Atur slot template, pilih foto, lalu render hasil akhir."
     >
-        <div v-if="loading" class="text-sm text-slate-500">
+        <div v-if="loading" class="text-sm text-[#6d6b77]">
             Loading session detail...
         </div>
 
@@ -1753,7 +1753,7 @@ onMounted(loadData);
         <div v-else class="grid gap-6 2xl:grid-cols-[1.6fr_1fr]">
             <div class="space-y-6">
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div
                         class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
@@ -1761,7 +1761,7 @@ onMounted(loadData);
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
                                 <h2
-                                    class="text-xl font-semibold text-slate-900"
+                                    class="text-xl font-semibold text-[#2f2b3dcc]"
                                 >
                                     Session #{{ session.id }}
                                 </h2>
@@ -1771,7 +1771,7 @@ onMounted(loadData);
                             </div>
 
                             <div
-                                class="grid gap-2 text-sm text-slate-500 md:grid-cols-3"
+                                class="grid gap-2 text-sm text-[#6d6b77] md:grid-cols-3"
                             >
                                 <p>Device: {{ session.device_name ?? '-' }}</p>
                                 <p>Code: {{ session.session_code }}</p>
@@ -1784,7 +1784,7 @@ onMounted(loadData);
                         <div class="space-y-3">
                             <button
                                 type="button"
-                                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                class="w-full rounded-xl border border-[#e8e6ef] bg-white px-4 py-2 text-sm font-medium text-[#2f2b3dcc] transition hover:border-[#d8d4e7] hover:bg-[#f5f5f9] disabled:cursor-not-allowed disabled:opacity-60"
                                 :disabled="refreshing"
                                 @click="refreshWorkspace"
                             >
@@ -1795,21 +1795,21 @@ onMounted(loadData);
                                 }}
                             </button>
 
-                            <div class="text-xs text-slate-500">
+                            <div class="text-xs text-[#6d6b77]">
                                 Synced: {{ lastSyncedAt ?? '-' }}
                             </div>
 
                             <div
-                                class="grid grid-cols-3 gap-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600"
+                                class="grid grid-cols-3 gap-3 rounded-xl bg-[#f5f5f9] p-3 text-sm text-[#6d6b77]"
                             >
                                 <div>
                                     <div
-                                        class="text-xs tracking-wide text-slate-400 uppercase"
+                                        class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                                     >
                                         Slots Filled
                                     </div>
                                     <div
-                                        class="mt-1 text-lg font-semibold text-slate-900"
+                                        class="mt-1 text-lg font-semibold text-[#2f2b3dcc]"
                                     >
                                         {{ filledSlotCount }}/{{
                                             slotAssignments.length
@@ -1818,24 +1818,24 @@ onMounted(loadData);
                                 </div>
                                 <div>
                                     <div
-                                        class="text-xs tracking-wide text-slate-400 uppercase"
+                                        class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                                     >
                                         Last Render
                                     </div>
                                     <div
-                                        class="mt-1 text-lg font-semibold text-slate-900"
+                                        class="mt-1 text-lg font-semibold text-[#2f2b3dcc]"
                                     >
                                         {{ activeRenderVersionLabel }}
                                     </div>
                                 </div>
                                 <div>
                                     <div
-                                        class="text-xs tracking-wide text-slate-400 uppercase"
+                                        class="text-xs tracking-wide text-[#b3b1bb] uppercase"
                                     >
                                         Print Order
                                     </div>
                                     <div
-                                        class="mt-1 text-sm font-semibold text-slate-900"
+                                        class="mt-1 text-sm font-semibold text-[#2f2b3dcc]"
                                     >
                                         {{
                                             latestPrintOrder?.order_code ?? '-'
@@ -1848,73 +1848,73 @@ onMounted(loadData);
                 </div>
 
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div class="space-y-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-slate-900">
+                            <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                                 Manual Payment Approval
                             </h3>
-                            <p class="text-sm text-slate-500">
+                            <p class="text-sm text-[#6d6b77]">
                                 Approve atau reject request pembayaran manual dari Android.
                             </p>
                         </div>
 
                         <div
-                            class="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm"
+                            class="grid grid-cols-2 gap-3 rounded-xl border border-[#e8e6ef] bg-[#f5f5f9] p-3 text-sm"
                         >
                             <div>
-                                <div class="text-xs uppercase text-slate-500">Session</div>
-                                <div class="font-semibold text-slate-900">
+                                <div class="text-xs uppercase text-[#6d6b77]">Session</div>
+                                <div class="font-semibold text-[#2f2b3dcc]">
                                     {{ session.session_code }}
                                 </div>
                             </div>
                             <div>
-                                <div class="text-xs uppercase text-slate-500">Customer ID (WA)</div>
-                                <div class="font-semibold text-slate-900">
+                                <div class="text-xs uppercase text-[#6d6b77]">Customer ID (WA)</div>
+                                <div class="font-semibold text-[#2f2b3dcc]">
                                     {{ session.customer_whatsapp ?? '-' }}
                                 </div>
                             </div>
                             <div>
-                                <div class="text-xs uppercase text-slate-500">Payment Status</div>
+                                <div class="text-xs uppercase text-[#6d6b77]">Payment Status</div>
                                 <div class="mt-1">
                                     <StatusBadge :status="session.payment_status ?? 'pending'" />
                                 </div>
                             </div>
                             <div>
-                                <div class="text-xs uppercase text-slate-500">Manual Status</div>
+                                <div class="text-xs uppercase text-[#6d6b77]">Manual Status</div>
                                 <div class="mt-1">
                                     <StatusBadge :status="manualPaymentStatusLabel" />
                                 </div>
                             </div>
                         </div>
 
-                        <div v-if="!isManualPaymentSession" class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                        <div v-if="!isManualPaymentSession" class="rounded-xl border border-[#e8e6ef] bg-[#f5f5f9] p-3 text-sm text-[#6d6b77]">
                             Session ini belum request pembayaran manual dari Android.
                         </div>
 
                         <template v-else>
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <label class="space-y-2">
-                                    <span class="text-sm font-medium text-slate-700">
+                                    <span class="text-sm font-medium text-[#2f2b3dcc]">
                                         Catatan Approve (opsional)
                                     </span>
                                     <textarea
                                         v-model="manualPaymentNotes"
                                         rows="2"
-                                        class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                        class="w-full rounded-xl border border-[#d8d4e7] px-3 py-2.5 text-sm"
                                         placeholder="Contoh: Sudah terima pembayaran tunai"
                                     />
                                 </label>
 
                                 <label class="space-y-2">
-                                    <span class="text-sm font-medium text-slate-700">
+                                    <span class="text-sm font-medium text-[#2f2b3dcc]">
                                         Alasan Reject
                                     </span>
                                     <textarea
                                         v-model="manualPaymentRejectReason"
                                         rows="2"
-                                        class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                        class="w-full rounded-xl border border-[#d8d4e7] px-3 py-2.5 text-sm"
                                         placeholder="Wajib diisi jika reject"
                                     />
                                 </label>
@@ -1954,7 +1954,7 @@ onMounted(loadData);
                                     session.manual_payment_reviewer_name ||
                                     session.manual_payment_notes
                                 "
-                                class="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600"
+                                class="rounded-xl border border-[#e8e6ef] bg-[#f5f5f9] p-3 text-sm text-[#6d6b77]"
                             >
                                 <div>
                                     Reviewed:
@@ -1978,23 +1978,23 @@ onMounted(loadData);
                 </div>
 
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div
                         class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
                     >
                         <div>
-                            <h3 class="text-lg font-semibold text-slate-900">
+                            <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                                 Photo Library
                             </h3>
-                            <p class="text-sm text-slate-500">
+                            <p class="text-sm text-[#6d6b77]">
                                 Pilih slot aktif di kanan, lalu klik foto untuk
                                 assign atau swap.
                             </p>
                         </div>
 
                         <div
-                            class="rounded-full bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700"
+                            class="rounded-full bg-[#edeafd] px-3 py-2 text-sm font-medium text-[#685dd8]"
                         >
                             {{
                                 selectedSlotIndex
@@ -2004,7 +2004,7 @@ onMounted(loadData);
                         </div>
 
                         <div
-                            class="rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600"
+                            class="rounded-full bg-[#f1f0f5] px-3 py-2 text-sm font-medium text-[#6d6b77]"
                         >
                             {{ session.photos.length }} foto
                         </div>
@@ -2025,11 +2025,11 @@ onMounted(loadData);
                             v-for="photo in session.photos"
                             :key="photo.id"
                             type="button"
-                            class="group overflow-hidden rounded-2xl border bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                            class="group overflow-hidden rounded-2xl border bg-white text-left shadow-[0_2px_10px_rgba(47,43,61,0.06)] transition hover:-translate-y-0.5 hover:shadow-md"
                             :class="
                                 assignedSlotsByPhotoId.has(photo.id)
-                                    ? 'border-blue-300 ring-2 ring-blue-100'
-                                    : 'border-slate-200'
+                                    ? 'border-[#9f96f5] ring-2 ring-[#d9d4fb]'
+                                    : 'border-[#e8e6ef]'
                             "
                             @click="handlePhotoClick(photo)"
                         >
@@ -2041,14 +2041,14 @@ onMounted(loadData);
                                 />
 
                                 <div
-                                    class="absolute top-3 left-3 rounded-full bg-slate-900/80 px-2.5 py-1 text-xs font-medium text-white"
+                                    class="absolute top-3 left-3 rounded-full bg-[#7367f0]/80 px-2.5 py-1 text-xs font-medium text-white"
                                 >
                                     Photo #{{ photo.capture_index }}
                                 </div>
 
                                 <div
                                     v-if="assignedSlotsByPhotoId.has(photo.id)"
-                                    class="absolute bottom-3 left-3 rounded-full bg-blue-600 px-2.5 py-1 text-xs font-medium text-white"
+                                    class="absolute bottom-3 left-3 rounded-full bg-[#7367f0] px-2.5 py-1 text-xs font-medium text-white"
                                 >
                                     Slots
                                     {{
@@ -2064,17 +2064,17 @@ onMounted(loadData);
                             >
                                 <div>
                                     <p
-                                        class="text-sm font-medium text-slate-900"
+                                        class="text-sm font-medium text-[#2f2b3dcc]"
                                     >
                                         Assign ke slot aktif
                                     </p>
-                                    <p class="text-xs text-slate-500">
+                                    <p class="text-xs text-[#6d6b77]">
                                         Klik ulang di slot lain untuk swap cepat
                                     </p>
                                 </div>
 
                                 <span
-                                    class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 transition group-hover:bg-blue-50 group-hover:text-blue-700"
+                                    class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77] transition group-hover:bg-[#edeafd] group-hover:text-[#685dd8]"
                                 >
                                     Use
                                 </span>
@@ -2085,14 +2085,14 @@ onMounted(loadData);
 
                 <div
                     v-if="renderedFileUrl"
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div class="mb-4 flex items-center justify-between gap-3">
-                        <h3 class="text-lg font-semibold text-slate-900">
+                        <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                             Rendered Output
                         </h3>
 
-                        <div class="text-sm text-slate-500">
+                        <div class="text-sm text-[#6d6b77]">
                             Preview hasil final terbaru
                         </div>
                     </div>
@@ -2100,28 +2100,28 @@ onMounted(loadData);
                     <img
                         :src="renderedFileUrl"
                         alt="rendered output"
-                        class="w-full rounded-xl border border-slate-200 object-cover"
+                        class="w-full rounded-xl border border-[#e8e6ef] object-cover"
                     />
                 </div>
             </div>
 
             <div class="space-y-6">
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <h3 class="text-lg font-semibold text-slate-900">
+                            <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                                 Workflow Tracker
                             </h3>
-                            <p class="text-sm text-slate-500">
+                            <p class="text-sm text-[#6d6b77]">
                                 Ringkasan cepat progress session dari capture
                                 sampai queue printer.
                             </p>
                         </div>
 
                         <div
-                            class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600"
+                            class="rounded-full bg-[#f1f0f5] px-3 py-1 text-xs font-medium text-[#6d6b77]"
                         >
                             {{ session.status ?? 'unknown' }}
                         </div>
@@ -2136,33 +2136,33 @@ onMounted(loadData);
                                 step.state === 'completed'
                                     ? 'border-emerald-200 bg-emerald-50/70'
                                     : step.state === 'ready'
-                                      ? 'border-blue-200 bg-blue-50/70'
+                                      ? 'border-[#d9d4fb] bg-[#edeafd]/80'
                                       : step.state === 'active'
                                         ? 'border-amber-200 bg-amber-50/80'
-                                        : 'border-slate-200 bg-slate-50'
+                                        : 'border-[#e8e6ef] bg-[#f5f5f9]'
                             "
                         >
                             <div class="flex items-center justify-between gap-3">
-                                <div class="font-medium text-slate-900">
+                                <div class="font-medium text-[#2f2b3dcc]">
                                     {{ step.title }}
                                 </div>
                                 <div
                                     class="rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide"
                                     :class="
                                         step.state === 'completed'
-                                            ? 'bg-emerald-100 text-emerald-700'
+                                            ? 'bg-[#e8f7ef] text-[#28c76f]'
                                             : step.state === 'ready'
-                                              ? 'bg-blue-100 text-blue-700'
+                                              ? 'bg-[#edeafd] text-[#685dd8]'
                                               : step.state === 'active'
-                                                ? 'bg-amber-100 text-amber-700'
-                                                : 'bg-slate-200 text-slate-600'
+                                                ? 'bg-[#fff1e3] text-[#ff9f43]'
+                                                : 'bg-[#e6e3f3] text-[#6d6b77]'
                                     "
                                 >
                                     {{ step.state }}
                                 </div>
                             </div>
 
-                            <p class="mt-2 text-sm text-slate-600">
+                            <p class="mt-2 text-sm text-[#6d6b77]">
                                 {{ step.description }}
                             </p>
                         </div>
@@ -2170,14 +2170,14 @@ onMounted(loadData);
                 </div>
 
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div class="space-y-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-slate-900">
+                            <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                                 Voucher / Skip
                             </h3>
-                            <p class="text-sm text-slate-500">
+                            <p class="text-sm text-[#6d6b77]">
                                 Terapkan voucher atau alasan skip pada session
                                 Android.
                             </p>
@@ -2186,27 +2186,27 @@ onMounted(loadData);
                         <div class="grid gap-3 sm:grid-cols-2">
                             <label class="space-y-2">
                                 <span
-                                    class="text-sm font-medium text-slate-700"
+                                    class="text-sm font-medium text-[#2f2b3dcc]"
                                 >
                                     Voucher Code
                                 </span>
                                 <input
                                     v-model="voucherCode"
                                     type="text"
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                    class="w-full rounded-xl border border-[#d8d4e7] px-3 py-2.5 text-sm"
                                     placeholder="VCHR-XXXX"
                                 />
                             </label>
 
                             <label class="space-y-2">
                                 <span
-                                    class="text-sm font-medium text-slate-700"
+                                    class="text-sm font-medium text-[#2f2b3dcc]"
                                 >
                                     Voucher Type
                                 </span>
                                 <select
                                     v-model="voucherType"
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                    class="w-full rounded-xl border border-[#d8d4e7] px-3 py-2.5 text-sm"
                                 >
                                     <option
                                         v-for="option in voucherTypeOptions"
@@ -2220,20 +2220,20 @@ onMounted(loadData);
                         </div>
 
                         <label class="space-y-2">
-                            <span class="text-sm font-medium text-slate-700">
+                            <span class="text-sm font-medium text-[#2f2b3dcc]">
                                 Catatan
                             </span>
                             <textarea
                                 v-model="voucherNotes"
                                 rows="2"
-                                class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                class="w-full rounded-xl border border-[#d8d4e7] px-3 py-2.5 text-sm"
                                 placeholder="Tambahkan alasan / catatan"
                             />
                         </label>
 
                         <button
                             type="button"
-                            class="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="w-full rounded-xl bg-[#7367f0] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#685dd8] disabled:cursor-not-allowed disabled:opacity-50"
                             :disabled="voucherSubmitting"
                             @click="applyVoucher"
                         >
@@ -2245,29 +2245,29 @@ onMounted(loadData);
                         </button>
 
                         <div
-                            class="grid grid-cols-3 gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center"
+                            class="grid grid-cols-3 gap-2 rounded-2xl border border-[#e8e6ef] bg-[#f5f5f9] p-3 text-center"
                         >
                             <div>
-                                <div class="text-[11px] uppercase text-slate-500">
+                                <div class="text-[11px] uppercase text-[#6d6b77]">
                                     Total
                                 </div>
-                                <div class="mt-1 text-sm font-semibold text-slate-900">
+                                <div class="mt-1 text-sm font-semibold text-[#2f2b3dcc]">
                                     {{ voucherSummary.total }}
                                 </div>
                             </div>
                             <div>
-                                <div class="text-[11px] uppercase text-slate-500">
+                                <div class="text-[11px] uppercase text-[#6d6b77]">
                                     Applied
                                 </div>
-                                <div class="mt-1 text-sm font-semibold text-slate-900">
+                                <div class="mt-1 text-sm font-semibold text-[#2f2b3dcc]">
                                     {{ voucherSummary.applied }}
                                 </div>
                             </div>
                             <div>
-                                <div class="text-[11px] uppercase text-slate-500">
+                                <div class="text-[11px] uppercase text-[#6d6b77]">
                                     Revoked
                                 </div>
-                                <div class="mt-1 text-sm font-semibold text-slate-900">
+                                <div class="mt-1 text-sm font-semibold text-[#2f2b3dcc]">
                                     {{ voucherSummary.revoked }}
                                 </div>
                             </div>
@@ -2279,8 +2279,8 @@ onMounted(loadData);
                                 class="rounded-full px-3 py-1.5 text-xs font-medium transition"
                                 :class="
                                     voucherFilter === 'all'
-                                        ? 'bg-slate-900 text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-[#7367f0] text-white'
+                                        : 'bg-[#f1f0f5] text-[#6d6b77] hover:bg-[#e6e3f3]'
                                 "
                                 @click="voucherFilter = 'all'"
                             >
@@ -2291,8 +2291,8 @@ onMounted(loadData);
                                 class="rounded-full px-3 py-1.5 text-xs font-medium transition"
                                 :class="
                                     voucherFilter === 'applied'
-                                        ? 'bg-slate-900 text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-[#7367f0] text-white'
+                                        : 'bg-[#f1f0f5] text-[#6d6b77] hover:bg-[#e6e3f3]'
                                 "
                                 @click="voucherFilter = 'applied'"
                             >
@@ -2303,8 +2303,8 @@ onMounted(loadData);
                                 class="rounded-full px-3 py-1.5 text-xs font-medium transition"
                                 :class="
                                     voucherFilter === 'revoked'
-                                        ? 'bg-slate-900 text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-[#7367f0] text-white'
+                                        : 'bg-[#f1f0f5] text-[#6d6b77] hover:bg-[#e6e3f3]'
                                 "
                                 @click="voucherFilter = 'revoked'"
                             >
@@ -2323,20 +2323,20 @@ onMounted(loadData);
                             <div
                                 v-for="voucher in filteredSessionVouchers"
                                 :key="voucher.id"
-                                class="rounded-2xl border border-slate-200 p-3"
+                                class="rounded-2xl border border-[#e8e6ef] p-3"
                             >
                                 <div class="flex items-start justify-between gap-3">
                                     <div>
-                                        <div class="text-sm font-semibold text-slate-900">
+                                        <div class="text-sm font-semibold text-[#2f2b3dcc]">
                                             {{ voucher.voucher_code }}
                                         </div>
-                                        <div class="text-xs text-slate-500">
+                                        <div class="text-xs text-[#6d6b77]">
                                             {{ voucher.voucher_type ?? '-' }}
-                                            • {{ voucher.applied_at ?? '-' }}
+                                            - {{ voucher.applied_at ?? '-' }}
                                         </div>
                                         <div
                                             v-if="voucher.notes"
-                                            class="mt-1 text-xs text-slate-500"
+                                            class="mt-1 text-xs text-[#6d6b77]"
                                         >
                                             {{ voucher.notes }}
                                         </div>
@@ -2352,7 +2352,7 @@ onMounted(loadData);
                                                 'applied'
                                             "
                                             type="button"
-                                            class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-200"
+                                            class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77] transition hover:bg-[#e6e3f3]"
                                             :disabled="
                                                 voucherRevokingId ===
                                                 voucher.id
@@ -2374,14 +2374,14 @@ onMounted(loadData);
                 </div>
 
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div class="space-y-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-slate-900">
+                            <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                                 Template & Slot Editor
                             </h3>
-                            <p class="text-sm text-slate-500">
+                            <p class="text-sm text-[#6d6b77]">
                                 Pilih template, lalu atur foto yang masuk ke
                                 tiap slot.
                             </p>
@@ -2408,8 +2408,8 @@ onMounted(loadData);
                                 class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition"
                                 :class="
                                     selectedTemplateId === template.id
-                                        ? 'border-blue-300 bg-blue-50/60'
-                                        : 'border-slate-200 hover:border-slate-300'
+                                        ? 'border-[#9f96f5] bg-[#edeafd]/80'
+                                        : 'border-[#e8e6ef] hover:border-[#d8d4e7]'
                                 "
                             >
                                 <input
@@ -2420,18 +2420,18 @@ onMounted(loadData);
                                 />
 
                                 <div class="min-w-0">
-                                    <div class="font-medium text-slate-900">
+                                    <div class="font-medium text-[#2f2b3dcc]">
                                         {{ template.template_name }}
                                     </div>
-                                    <div class="mt-1 text-xs text-slate-500">
+                                    <div class="mt-1 text-xs text-[#6d6b77]">
                                         {{ template.canvas_width ?? '-' }} x
                                         {{ template.canvas_height ?? '-' }}
                                     </div>
                                     <div
-                                        class="flex flex-wrap items-center gap-2 text-xs text-slate-500"
+                                        class="flex flex-wrap items-center gap-2 text-xs text-[#6d6b77]"
                                     >
                                         <span>{{ template.slots.length }} slot</span>
-                                        <span>•</span>
+                                        <span>-</span>
                                         <span>{{ template.paper_size ?? '-' }}</span>
                                     </div>
                                 </div>
@@ -2440,30 +2440,30 @@ onMounted(loadData);
 
                         <div
                             v-if="selectedTemplate"
-                            class="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                            class="space-y-4 rounded-2xl border border-[#e8e6ef] bg-[#f5f5f9] p-4"
                         >
                             <div
-                                class="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                                class="overflow-hidden rounded-2xl border border-[#e8e6ef] bg-white"
                             >
                                 <div
-                                    class="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3"
+                                    class="flex items-center justify-between gap-3 border-b border-[#e8e6ef] px-4 py-3"
                                 >
                                     <div>
-                                        <div class="font-medium text-slate-900">
+                                        <div class="font-medium text-[#2f2b3dcc]">
                                             Canvas Preview
                                         </div>
-                                        <p class="text-xs text-slate-500">
+                                        <p class="text-xs text-[#6d6b77]">
                                             Klik slot di preview untuk memilih
                                             area kerja yang aktif.
                                         </p>
-                                        <p class="mt-1 text-xs text-blue-600">
+                                        <p class="mt-1 text-xs text-[#7367f0]">
                                             Drag foto langsung di slot untuk
                                             custom letak foto.
                                         </p>
                                     </div>
 
                                     <div
-                                        class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600"
+                                        class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77]"
                                     >
                                         {{ selectedTemplate.paper_size ?? '-' }}
                                     </div>
@@ -2471,7 +2471,7 @@ onMounted(loadData);
 
                                 <div class="p-4">
                                     <div
-                                        class="relative overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-slate-100"
+                                        class="relative overflow-hidden rounded-2xl border border-dashed border-[#d8d4e7] bg-[#f1f0f5]"
                                         :style="{
                                             aspectRatio: `${selectedTemplate.canvas_width ?? 4} / ${selectedTemplate.canvas_height ?? 3}`,
                                         }"
@@ -2492,11 +2492,11 @@ onMounted(loadData);
                                                 selectedSlotIndex ===
                                                 slot.slot_index
                                                     ? isDraggingSlot(slot.slot_index)
-                                                        ? 'z-10 cursor-grabbing border-blue-500 ring-2 ring-blue-200'
-                                                        : 'z-10 cursor-grab border-blue-500 ring-2 ring-blue-200'
+                                                        ? 'z-10 cursor-grabbing border-[#7367f0] ring-2 ring-[#d9d4fb]'
+                                                        : 'z-10 cursor-grab border-[#7367f0] ring-2 ring-[#d9d4fb]'
                                                     : assignmentBySlotIndex.get(slot.slot_index)?.photo
-                                                      ? 'cursor-grab border-slate-300 hover:border-blue-400'
-                                                      : 'cursor-pointer border-slate-300 hover:border-blue-400'
+                                                      ? 'cursor-grab border-[#d8d4e7] hover:border-[#9f96f5]'
+                                                      : 'cursor-pointer border-[#d8d4e7] hover:border-[#9f96f5]'
                                             "
                                             :style="getTemplateSlotStyle(slot)"
                                             @click="setSelectedSlot(slot.slot_index)"
@@ -2540,13 +2540,13 @@ onMounted(loadData);
 
                                             <div
                                                 v-else
-                                                class="flex h-full w-full items-center justify-center bg-white/70 text-[11px] font-semibold text-slate-500"
+                                                class="flex h-full w-full items-center justify-center bg-white/70 text-[11px] font-semibold text-[#6d6b77]"
                                             >
                                                 Empty
                                             </div>
 
                                             <div
-                                                class="absolute top-2 left-2 rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium text-white"
+                                                class="absolute top-2 left-2 rounded-full bg-[#7367f0]/80 px-2 py-0.5 text-[10px] font-medium text-white"
                                             >
                                                 {{ slot.slot_index }}
                                             </div>
@@ -2556,15 +2556,15 @@ onMounted(loadData);
                             </div>
 
                             <div class="flex flex-wrap items-center gap-2">
-                                <label class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200">
+                                <label class="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d8d4e7]">
                                     <input
                                         v-model="smartFitEnabled"
                                         type="checkbox"
-                                        class="h-4 w-4 rounded border-slate-300"
+                                        class="h-4 w-4 rounded border-[#d8d4e7]"
                                     />
                                     Smart Fit
                                 </label>
-                                <div class="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200">
+                                <div class="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d8d4e7]">
                                     <span>Bias</span>
                                     <input
                                         v-model.number="smartFitBias"
@@ -2578,28 +2578,28 @@ onMounted(loadData);
                                 </div>
                                 <button
                                     type="button"
-                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-100"
+                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d8d4e7] transition hover:bg-[#f1f0f5]"
                                     @click="autoFillOpenSlots"
                                 >
                                     Auto Fill Empty
                                 </button>
                                 <button
                                     type="button"
-                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-100"
+                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d8d4e7] transition hover:bg-[#f1f0f5]"
                                     @click="applySmartFitAll"
                                 >
                                     Smart Fit All
                                 </button>
                                 <button
                                     type="button"
-                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-100"
+                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d8d4e7] transition hover:bg-[#f1f0f5]"
                                     @click="resetAssignments"
                                 >
                                     Reset Default
                                 </button>
                                 <button
                                     type="button"
-                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-100"
+                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d8d4e7] transition hover:bg-[#f1f0f5]"
                                     @click="clearAllSlots"
                                 >
                                     Clear All
@@ -2614,8 +2614,8 @@ onMounted(loadData);
                                     :class="
                                         selectedSlotIndex ===
                                         assignment.slot_index
-                                            ? 'border-blue-300 bg-white ring-2 ring-blue-100'
-                                            : 'border-slate-200 bg-white hover:border-slate-300'
+                                            ? 'border-[#9f96f5] bg-white ring-2 ring-[#d9d4fb]'
+                                            : 'border-[#e8e6ef] bg-white hover:border-[#d8d4e7]'
                                     "
                                 >
                                     <div
@@ -2623,7 +2623,7 @@ onMounted(loadData);
                                     >
                                         <div class="min-w-0">
                                             <div
-                                                class="flex items-center gap-2 text-sm font-semibold text-slate-900"
+                                                class="flex items-center gap-2 text-sm font-semibold text-[#2f2b3dcc]"
                                             >
                                                 <span>
                                                     Slot
@@ -2633,8 +2633,8 @@ onMounted(loadData);
                                                     class="rounded-full px-2 py-0.5 text-[11px] font-medium"
                                                     :class="
                                                         assignment.photo
-                                                            ? 'bg-emerald-100 text-emerald-700'
-                                                            : 'bg-amber-100 text-amber-700'
+                                                            ? 'bg-[#e8f7ef] text-[#28c76f]'
+                                                            : 'bg-[#fff1e3] text-[#ff9f43]'
                                                     "
                                                 >
                                                     {{
@@ -2645,7 +2645,7 @@ onMounted(loadData);
                                                 </span>
                                             </div>
                                             <p
-                                                class="mt-1 text-xs text-slate-500"
+                                                class="mt-1 text-xs text-[#6d6b77]"
                                             >
                                                 {{
                                                     assignment.photo
@@ -2658,7 +2658,7 @@ onMounted(loadData);
                                         <div class="flex items-center gap-2">
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                                                class="rounded-full bg-[#edeafd] px-2.5 py-1 text-xs font-medium text-[#685dd8] transition hover:bg-[#d9d4fb]"
                                                 @click="
                                                     setSelectedSlot(
                                                         assignment.slot_index,
@@ -2671,7 +2671,7 @@ onMounted(loadData);
                                             <button
                                                 v-if="assignment.photo"
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77] transition hover:bg-[#e6e3f3]"
                                                 @click="
                                                     duplicatePhotoToNextSlot(
                                                         assignment.photo,
@@ -2685,7 +2685,7 @@ onMounted(loadData);
                                             <button
                                                 v-if="assignment.photo"
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77] transition hover:bg-[#e6e3f3]"
                                                 @click="
                                                     clearSlot(
                                                         assignment.slot_index,
@@ -2699,7 +2699,7 @@ onMounted(loadData);
 
                                     <div
                                         v-if="assignment.photo"
-                                        class="mt-3 overflow-hidden rounded-xl border border-slate-200"
+                                        class="mt-3 overflow-hidden rounded-xl border border-[#e8e6ef]"
                                     >
                                         <img
                                             :src="getPhotoUrl(assignment.photo)"
@@ -2718,19 +2718,19 @@ onMounted(loadData);
 
                         <div
                             v-if="selectedSlotAssignment"
-                            class="rounded-2xl border border-blue-200 bg-blue-50/70 p-4"
+                            class="rounded-2xl border border-[#d9d4fb] bg-[#edeafd]/80 p-4"
                         >
                             <div
                                 class="flex items-center justify-between gap-3"
                             >
                                 <div>
                                     <div
-                                        class="text-sm font-semibold text-blue-900"
+                                        class="text-sm font-semibold text-[#2f2b3dcc]"
                                     >
                                         Slot aktif
                                         {{ selectedSlotAssignment.slot_index }}
                                     </div>
-                                    <p class="text-xs text-blue-700">
+                                    <p class="text-xs text-[#685dd8]">
                                         {{
                                             selectedSlotAssignment.photo
                                                 ? `Terisi Photo #${selectedSlotAssignment.photo.capture_index}`
@@ -2739,7 +2739,7 @@ onMounted(loadData);
                                     </p>
                                     <p
                                         v-if="selectedTemplateSlot"
-                                        class="mt-1 text-xs text-blue-700/80"
+                                        class="mt-1 text-xs text-[#685dd8]/80"
                                     >
                                         Area slot:
                                         {{ selectedTemplateSlot.width }} x
@@ -2750,7 +2750,7 @@ onMounted(loadData);
                                 <button
                                     v-if="selectedSlotAssignment.photo"
                                     type="button"
-                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                     @click="
                                         clearSlot(
                                             selectedSlotAssignment.slot_index,
@@ -2763,7 +2763,7 @@ onMounted(loadData);
                                 <button
                                     v-if="selectedSlotAssignment.photo"
                                     type="button"
-                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                    class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                     @click="
                                         duplicatePhotoToNextSlot(
                                             selectedSlotAssignment.photo,
@@ -2780,35 +2780,35 @@ onMounted(loadData);
                                 class="mt-4 space-y-4"
                             >
                                 <div
-                                    class="overflow-hidden rounded-2xl border border-blue-200 bg-white"
+                                    class="overflow-hidden rounded-2xl border border-[#d9d4fb] bg-white"
                                 >
                                     <div
-                                        class="flex items-center justify-between gap-3 border-b border-blue-100 px-4 py-3"
+                                        class="flex items-center justify-between gap-3 border-b border-[#edeafd] px-4 py-3"
                                     >
                                         <div>
                                             <div
-                                                class="text-sm font-medium text-slate-900"
+                                                class="text-sm font-medium text-[#2f2b3dcc]"
                                             >
                                                 Framing Preview
                                             </div>
-                                            <p class="text-xs text-slate-500">
+                                            <p class="text-xs text-[#6d6b77]">
                                                 Preview non-destruktif untuk
                                                 posisi foto di slot aktif.
                                             </p>
                                         </div>
 
                                         <div
-                                            class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                                            class="rounded-full bg-[#edeafd] px-2.5 py-1 text-xs font-medium text-[#685dd8]"
                                         >
                                             Photo
                                             #{{ selectedSlotAssignment.photo.capture_index }}
-                                            • Zoom {{ selectedZoomLabel }}
+                                            - Zoom {{ selectedZoomLabel }}
                                         </div>
                                     </div>
 
                                     <div class="p-4">
                                         <div
-                                            class="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100"
+                                            class="overflow-hidden rounded-2xl border border-[#e8e6ef] bg-[#f1f0f5]"
                                             :style="{
                                                 aspectRatio: selectedTemplateSlot
                                                     ? `${selectedTemplateSlot.width} / ${selectedTemplateSlot.height}`
@@ -2831,17 +2831,17 @@ onMounted(loadData);
 
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <div
-                                        class="rounded-2xl border border-blue-100 bg-white p-4"
+                                        class="rounded-2xl border border-[#edeafd] bg-white p-4"
                                     >
                                         <div
                                             class="flex items-center justify-between gap-3"
                                         >
                                             <div
-                                                class="text-sm font-medium text-slate-900"
+                                                class="text-sm font-medium text-[#2f2b3dcc]"
                                             >
                                                 Zoom
                                             </div>
-                                            <div class="text-xs text-slate-500">
+                                            <div class="text-xs text-[#6d6b77]">
                                                 {{
                                                     Math.round(
                                                         selectedSlotAssignment.crop
@@ -2876,14 +2876,14 @@ onMounted(loadData);
                                         >
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="stepSelectedZoom(-0.1)"
                                             >
                                                 Zoom -
                                             </button>
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="stepSelectedZoom(0.1)"
                                             >
                                                 Zoom +
@@ -2892,17 +2892,17 @@ onMounted(loadData);
                                     </div>
 
                                     <div
-                                        class="rounded-2xl border border-blue-100 bg-white p-4"
+                                        class="rounded-2xl border border-[#edeafd] bg-white p-4"
                                     >
                                         <div
                                             class="flex items-center justify-between gap-3"
                                         >
                                             <div
-                                                class="text-sm font-medium text-slate-900"
+                                                class="text-sm font-medium text-[#2f2b3dcc]"
                                             >
                                                 Rotation
                                             </div>
-                                            <div class="text-xs text-slate-500">
+                                            <div class="text-xs text-[#6d6b77]">
                                                 {{
                                                     selectedSlotAssignment
                                                         .transform.rotation
@@ -2915,7 +2915,7 @@ onMounted(loadData);
                                         >
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="
                                                     rotateSelectedPhoto(-90)
                                                 "
@@ -2924,7 +2924,7 @@ onMounted(loadData);
                                             </button>
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="
                                                     rotateSelectedPhoto(90)
                                                 "
@@ -2933,7 +2933,7 @@ onMounted(loadData);
                                             </button>
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="
                                                     updateSelectedAssignmentTransform({
                                                         rotation: 0,
@@ -2948,17 +2948,17 @@ onMounted(loadData);
 
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <div
-                                        class="rounded-2xl border border-blue-100 bg-white p-4"
+                                        class="rounded-2xl border border-[#edeafd] bg-white p-4"
                                     >
                                         <div
                                             class="flex items-center justify-between gap-3"
                                         >
                                             <div
-                                                class="text-sm font-medium text-slate-900"
+                                                class="text-sm font-medium text-[#2f2b3dcc]"
                                             >
                                                 Letak Foto X
                                             </div>
-                                            <div class="text-xs text-slate-500">
+                                            <div class="text-xs text-[#6d6b77]">
                                                 {{
                                                     selectedSlotAssignment.crop
                                                         .offset_x
@@ -2992,14 +2992,14 @@ onMounted(loadData);
                                         >
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="nudgeSelectedOffset('x', -10)"
                                             >
                                                 Left
                                             </button>
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="nudgeSelectedOffset('x', 10)"
                                             >
                                                 Right
@@ -3008,17 +3008,17 @@ onMounted(loadData);
                                     </div>
 
                                     <div
-                                        class="rounded-2xl border border-blue-100 bg-white p-4"
+                                        class="rounded-2xl border border-[#edeafd] bg-white p-4"
                                     >
                                         <div
                                             class="flex items-center justify-between gap-3"
                                         >
                                             <div
-                                                class="text-sm font-medium text-slate-900"
+                                                class="text-sm font-medium text-[#2f2b3dcc]"
                                             >
                                                 Letak Foto Y
                                             </div>
-                                            <div class="text-xs text-slate-500">
+                                            <div class="text-xs text-[#6d6b77]">
                                                 {{
                                                     selectedSlotAssignment.crop
                                                         .offset_y
@@ -3052,14 +3052,14 @@ onMounted(loadData);
                                         >
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="nudgeSelectedOffset('y', -10)"
                                             >
                                                 Up
                                             </button>
                                             <button
                                                 type="button"
-                                                class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-200"
+                                                class="rounded-full bg-[#f1f0f5] px-3 py-1.5 text-xs font-medium text-[#2f2b3dcc] transition hover:bg-[#e6e3f3]"
                                                 @click="nudgeSelectedOffset('y', 10)"
                                             >
                                                 Down
@@ -3073,7 +3073,7 @@ onMounted(loadData);
                                 >
                                     <button
                                         type="button"
-                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                         @click="
                                             applySelectedFramingPreset(
                                                 'center',
@@ -3084,7 +3084,7 @@ onMounted(loadData);
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                         @click="
                                             applySelectedFramingPreset(
                                                 'close-up',
@@ -3095,7 +3095,7 @@ onMounted(loadData);
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                         @click="
                                             applySelectedFramingPreset(
                                                 'show-more',
@@ -3106,7 +3106,7 @@ onMounted(loadData);
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                         @click="
                                             applySelectedFramingPreset('left')
                                         "
@@ -3115,7 +3115,7 @@ onMounted(loadData);
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                         @click="
                                             applySelectedFramingPreset('right')
                                         "
@@ -3124,7 +3124,7 @@ onMounted(loadData);
                                     </button>
                                     <button
                                         type="button"
-                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                         @click="resetSelectedAdjustment"
                                     >
                                         Reset Framing
@@ -3134,10 +3134,10 @@ onMounted(loadData);
                         </div>
 
                         <div
-                            class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"
+                            class="rounded-2xl border border-[#e8e6ef] bg-[#f5f5f9] p-4 text-sm text-[#6d6b77]"
                         >
                             <div class="flex items-center justify-between gap-3">
-                                <div class="font-medium text-slate-900">
+                                <div class="font-medium text-[#2f2b3dcc]">
                                     Render Status
                                 </div>
                                 <StatusBadge
@@ -3150,23 +3150,23 @@ onMounted(loadData);
                                 />
                             </div>
 
-                            <div class="mt-2 text-xs text-slate-500">
+                            <div class="mt-2 text-xs text-[#6d6b77]">
                                 Edit Job:
                                 {{
                                     latestEditJob?.version_no
                                         ? `v${latestEditJob.version_no}`
                                         : '-'
                                 }}
-                                •
+                                -
                                 {{
                                     latestEditJob?.template?.template_name ??
                                     'Template belum dipilih'
                                 }}
                             </div>
-                            <div class="mt-1 text-xs text-slate-500">
+                            <div class="mt-1 text-xs text-[#6d6b77]">
                                 Active Render: {{ activeRenderVersionLabel }}
                             </div>
-                            <div class="mt-1 text-xs text-slate-500">
+                            <div class="mt-1 text-xs text-[#6d6b77]">
                                 Slot terisi: {{ filledSlotCount }}/{{
                                     slotAssignments.length
                                 }}
@@ -3175,28 +3175,28 @@ onMounted(loadData);
 
                         <button
                             type="button"
-                            class="w-full rounded-xl bg-blue-600 px-4 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="w-full rounded-xl bg-[#7367f0] px-4 py-3 font-medium text-white transition hover:bg-[#685dd8] disabled:cursor-not-allowed disabled:opacity-50"
                             :disabled="!canCreateAndRender || submitting"
                             @click="createEditJobAndRender"
                         >
                             {{ renderActionLabel }}
                         </button>
 
-                        <p class="text-xs leading-5 text-slate-500">
+                        <p class="text-xs leading-5 text-[#6d6b77]">
                             {{ renderHelperText }}
                         </p>
                     </div>
                 </div>
 
                 <div
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div class="space-y-4">
                         <div>
-                            <h3 class="text-lg font-semibold text-slate-900">
+                            <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                                 Print Production
                             </h3>
-                            <p class="text-sm text-slate-500">
+                            <p class="text-sm text-[#6d6b77]">
                                 Setelah render final siap, buat print order lalu
                                 kirim ke printer queue.
                             </p>
@@ -3205,13 +3205,13 @@ onMounted(loadData);
                         <div class="grid gap-3 sm:grid-cols-2">
                             <label class="space-y-2">
                                 <span
-                                    class="text-sm font-medium text-slate-700"
+                                    class="text-sm font-medium text-[#2f2b3dcc]"
                                 >
                                     Printer
                                 </span>
                                 <select
                                     v-model="selectedPrinterId"
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                    class="w-full rounded-xl border border-[#d8d4e7] px-3 py-2.5 text-sm"
                                 >
                                     <option
                                         v-for="printer in printers"
@@ -3230,7 +3230,7 @@ onMounted(loadData);
 
                             <label class="space-y-2">
                                 <span
-                                    class="text-sm font-medium text-slate-700"
+                                    class="text-sm font-medium text-[#2f2b3dcc]"
                                 >
                                     Copies
                                 </span>
@@ -3238,32 +3238,32 @@ onMounted(loadData);
                                     v-model.number="copies"
                                     type="number"
                                     min="1"
-                                    class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                    class="w-full rounded-xl border border-[#d8d4e7] px-3 py-2.5 text-sm"
                                 />
                             </label>
                         </div>
 
                         <label class="space-y-2">
-                            <span class="text-sm font-medium text-slate-700">
+                            <span class="text-sm font-medium text-[#2f2b3dcc]">
                                 Paper Size
                             </span>
                             <input
                                 v-model="paperSize"
                                 type="text"
-                                class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+                                class="w-full rounded-xl border border-[#d8d4e7] px-3 py-2.5 text-sm"
                                 placeholder="4R"
                             />
                         </label>
 
                         <div
                             v-if="selectedPrinter"
-                            class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600"
+                            class="rounded-2xl border border-[#e8e6ef] bg-[#f5f5f9] p-4 text-sm text-[#6d6b77]"
                         >
                             <div
                                 class="flex items-center justify-between gap-3"
                             >
                                 <div>
-                                    <div class="font-medium text-slate-900">
+                                    <div class="font-medium text-[#2f2b3dcc]">
                                         {{ selectedPrinter.printer_name }}
                                     </div>
                                     <div class="mt-1 flex items-center gap-2">
@@ -3285,7 +3285,7 @@ onMounted(loadData);
                                     </div>
                                 </div>
 
-                                <div class="text-right text-xs text-slate-500">
+                                <div class="text-right text-xs text-[#6d6b77]">
                                     Default paper:
                                     {{
                                         selectedPrinter.paper_size_default ??
@@ -3297,18 +3297,18 @@ onMounted(loadData);
 
                         <div
                             v-if="latestPrintOrder"
-                            class="rounded-2xl border border-blue-200 bg-blue-50/70 p-4"
+                            class="rounded-2xl border border-[#d9d4fb] bg-[#edeafd]/80 p-4"
                         >
                             <div
                                 class="flex flex-wrap items-start justify-between gap-3"
                             >
                                 <div>
                                     <div
-                                        class="text-sm font-semibold text-blue-900"
+                                        class="text-sm font-semibold text-[#2f2b3dcc]"
                                     >
                                         Latest Print Order
                                     </div>
-                                    <p class="mt-1 text-sm text-blue-800">
+                                    <p class="mt-1 text-sm text-[#6d6b77]">
                                         {{ latestPrintOrder.order_code }}
                                     </p>
                                     <div class="mt-2 flex items-center gap-2">
@@ -3318,7 +3318,7 @@ onMounted(loadData);
                                                 'unknown'
                                             "
                                         />
-                                        <span class="text-xs text-blue-700">
+                                        <span class="text-xs text-[#685dd8]">
                                             {{
                                                 latestPrintOrder.printer
                                                     ?.name ??
@@ -3335,13 +3335,13 @@ onMounted(loadData);
                                                 latestPrintOrder.id,
                                             )
                                         "
-                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                     >
                                         Open Order
                                     </Link>
                                     <Link
                                         :href="printQueueRoutes.index.url()"
-                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-100"
+                                        class="rounded-full bg-white px-3 py-1.5 text-xs font-medium text-[#685dd8] shadow-[0_2px_10px_rgba(47,43,61,0.06)] ring-1 ring-[#d9d4fb] transition hover:bg-[#d9d4fb]"
                                     >
                                         Open Queue
                                     </Link>
@@ -3352,7 +3352,7 @@ onMounted(loadData);
                         <div class="grid gap-3 sm:grid-cols-2">
                             <button
                                 type="button"
-                                class="rounded-xl bg-slate-900 px-4 py-3 font-medium text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="rounded-xl bg-[#7367f0] px-4 py-3 font-medium text-white transition hover:bg-[#685dd8] disabled:cursor-not-allowed disabled:opacity-50"
                                 :disabled="!canCreatePrintOrder"
                                 @click="createPrintOrder"
                             >
@@ -3361,7 +3361,7 @@ onMounted(loadData);
 
                             <button
                                 type="button"
-                                class="rounded-xl bg-blue-600 px-4 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="rounded-xl bg-[#7367f0] px-4 py-3 font-medium text-white transition hover:bg-[#685dd8] disabled:cursor-not-allowed disabled:opacity-50"
                                 :disabled="!canQueuePrintOrder"
                                 @click="queueLatestPrintOrder"
                             >
@@ -3373,11 +3373,11 @@ onMounted(loadData);
                             </button>
                         </div>
 
-                        <p class="text-xs leading-5 text-slate-500">
+                        <p class="text-xs leading-5 text-[#6d6b77]">
                             {{ printOrderHelperText }}
                         </p>
 
-                        <p class="text-xs leading-5 text-slate-500">
+                        <p class="text-xs leading-5 text-[#6d6b77]">
                             {{ queueHelperText }}
                         </p>
                     </div>
@@ -3386,3 +3386,7 @@ onMounted(loadData);
         </div>
     </AppLayout>
 </template>
+
+
+
+

@@ -231,13 +231,13 @@ watch(selectedStatus, async () => {
             {{ feedback }}
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
             <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h2 class="text-lg font-semibold text-slate-900">
+                    <h2 class="text-lg font-semibold text-[#2f2b3dcc]">
                         Template Library
                     </h2>
-                    <p class="text-sm text-slate-500">
+                    <p class="text-sm text-[#6d6b77]">
                         Koleksi layout aktif berdasarkan ukuran canvas dan jumlah slot foto.
                     </p>
                 </div>
@@ -246,7 +246,7 @@ watch(selectedStatus, async () => {
                     <input
                         v-model="search"
                         type="text"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                         placeholder="Cari template, kode, kategori, atau paper size"
                     />
                     <button
@@ -275,60 +275,60 @@ watch(selectedStatus, async () => {
 
             <div
                 v-if="showCreateForm"
-                class="mb-4 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2"
+                class="mb-4 grid gap-3 rounded-xl border border-[#e8e6ef] bg-[#f5f5f9] p-4 md:grid-cols-2"
             >
-                <label class="space-y-1 text-xs text-slate-600">
+                <label class="space-y-1 text-xs text-[#6d6b77]">
                     <span>Nama Template</span>
                     <input
                         v-model="createForm.template_name"
                         type="text"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                         placeholder="Template Photostrip 2 Slot"
                     />
                 </label>
-                <label class="space-y-1 text-xs text-slate-600">
+                <label class="space-y-1 text-xs text-[#6d6b77]">
                     <span>Kode Template (opsional)</span>
                     <input
                         v-model="createForm.template_code"
                         type="text"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                         placeholder="TPL-2SLOT"
                     />
                 </label>
-                <label class="space-y-1 text-xs text-slate-600">
+                <label class="space-y-1 text-xs text-[#6d6b77]">
                     <span>Category</span>
                     <input
                         v-model="createForm.category"
                         type="text"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                         placeholder="photostrip"
                     />
                 </label>
-                <label class="space-y-1 text-xs text-slate-600">
+                <label class="space-y-1 text-xs text-[#6d6b77]">
                     <span>Paper Size</span>
                     <input
                         v-model="createForm.paper_size"
                         type="text"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                         placeholder="4R"
                     />
                 </label>
-                <label class="space-y-1 text-xs text-slate-600">
+                <label class="space-y-1 text-xs text-[#6d6b77]">
                     <span>Canvas Width</span>
                     <input
                         v-model.number="createForm.canvas_width"
                         type="number"
                         min="1"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                     />
                 </label>
-                <label class="space-y-1 text-xs text-slate-600">
+                <label class="space-y-1 text-xs text-[#6d6b77]">
                     <span>Canvas Height</span>
                     <input
                         v-model.number="createForm.canvas_height"
                         type="number"
                         min="1"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                     />
                 </label>
                 <div class="md:col-span-2">
@@ -346,7 +346,7 @@ watch(selectedStatus, async () => {
             <div class="mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
                 <select
                     v-model="selectedCategory"
-                    class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                 >
                     <option
                         v-for="option in categoryOptions"
@@ -363,7 +363,7 @@ watch(selectedStatus, async () => {
 
                 <select
                     v-model="selectedPaperSize"
-                    class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                 >
                     <option
                         v-for="option in paperSizeOptions"
@@ -380,7 +380,7 @@ watch(selectedStatus, async () => {
 
                 <select
                     v-model="selectedSlotCount"
-                    class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                 >
                     <option
                         v-for="option in slotCountOptions"
@@ -397,7 +397,7 @@ watch(selectedStatus, async () => {
 
                 <select
                     v-model="selectedStatus"
-                    class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                 >
                     <option
                         v-for="option in statusOptions"
@@ -409,7 +409,7 @@ watch(selectedStatus, async () => {
                 </select>
             </div>
 
-            <div v-if="loading" class="text-sm text-slate-500">
+            <div v-if="loading" class="text-sm text-[#6d6b77]">
                 Loading templates...
             </div>
 
@@ -424,10 +424,10 @@ watch(selectedStatus, async () => {
                 <div
                     v-for="template in filteredTemplates"
                     :key="template.id"
-                    class="group rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+                    class="group rounded-lg border border-[#e8e6ef] bg-white p-4 shadow-[0_2px_10px_rgba(47,43,61,0.06)] transition hover:-translate-y-0.5 hover:border-[#9f96f5] hover:shadow-md"
                 >
                     <div
-                        class="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg bg-slate-100"
+                        class="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg bg-[#f1f0f5]"
                     >
                         <img
                             v-if="template.preview_url"
@@ -438,7 +438,7 @@ watch(selectedStatus, async () => {
 
                         <div
                             v-if="!template.slots.length"
-                            class="px-4 text-center text-sm text-slate-400"
+                            class="px-4 text-center text-sm text-[#b3b1bb]"
                         >
                             Preview belum tersedia
                         </div>
@@ -450,7 +450,7 @@ watch(selectedStatus, async () => {
                             <div
                                 v-for="slot in template.slots"
                                 :key="slot.slot_index"
-                                class="absolute flex items-center justify-center rounded-lg border border-blue-500/70 bg-blue-100/75 text-[11px] font-semibold text-blue-700"
+                                class="absolute flex items-center justify-center rounded-lg border border-[#9f96f5] bg-[#edeafd] text-[11px] font-semibold text-[#685dd8]"
                                 :style="getSlotPreviewStyle(template, slot)"
                             >
                                 {{ slot.slot_index }}
@@ -461,24 +461,24 @@ watch(selectedStatus, async () => {
                     <div class="mt-4 space-y-2">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <h3 class="font-semibold text-slate-900 group-hover:text-blue-700">
+                                <h3 class="font-semibold text-[#2f2b3dcc] group-hover:text-[#685dd8]">
                                     {{ template.template_name }}
                                 </h3>
-                                <p class="text-xs text-slate-500">
+                                <p class="text-xs text-[#6d6b77]">
                                     {{ template.template_code ?? 'Tanpa kode' }}
                                 </p>
                             </div>
 
                             <div class="flex flex-col items-end gap-2 text-right">
-                                <div class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                                <div class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-medium text-[#6d6b77]">
                                     {{ template.paper_size ?? '-' }}
                                 </div>
                                 <div
                                     class="rounded-full px-2.5 py-1 text-[11px] font-semibold"
                                     :class="
                                         (template.status ?? 'active') === 'archived'
-                                            ? 'bg-amber-100 text-amber-700'
-                                            : 'bg-emerald-100 text-emerald-700'
+                                            ? 'bg-[#fff1e3] text-[#ff9f43]'
+                                            : 'bg-[#e8f7ef] text-[#28c76f]'
                                     "
                                 >
                                     {{ (template.status ?? 'active') === 'archived' ? 'Archived' : 'Active' }}
@@ -487,23 +487,23 @@ watch(selectedStatus, async () => {
                         </div>
 
                         <div class="grid grid-cols-3 gap-3 text-sm">
-                            <div class="rounded-lg bg-slate-50 p-3">
-                                <div class="text-xs text-slate-400">Category</div>
-                                <div class="mt-1 font-medium text-slate-900">
+                            <div class="rounded-lg bg-[#f5f5f9] p-3">
+                                <div class="text-xs text-[#b3b1bb]">Category</div>
+                                <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                     {{ template.category ?? '-' }}
                                 </div>
                             </div>
 
-                            <div class="rounded-lg bg-slate-50 p-3">
-                                <div class="text-xs text-slate-400">Canvas</div>
-                                <div class="mt-1 font-medium text-slate-900">
+                            <div class="rounded-lg bg-[#f5f5f9] p-3">
+                                <div class="text-xs text-[#b3b1bb]">Canvas</div>
+                                <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                     {{ template.canvas_width ?? 0 }}x{{ template.canvas_height ?? 0 }}
                                 </div>
                             </div>
 
-                            <div class="rounded-lg bg-slate-50 p-3">
-                                <div class="text-xs text-slate-400">Slots</div>
-                                <div class="mt-1 font-medium text-slate-900">
+                            <div class="rounded-lg bg-[#f5f5f9] p-3">
+                                <div class="text-xs text-[#b3b1bb]">Slots</div>
+                                <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                     {{ template.slots.length }}
                                 </div>
                             </div>
@@ -512,13 +512,13 @@ watch(selectedStatus, async () => {
                         <div class="mt-3 flex items-center gap-2">
                             <Link
                                 :href="templatesRoutes.show.url(template.id)"
-                                class="inline-flex rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                                class="inline-flex rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                             >
                                 Detail
                             </Link>
                             <button
                                 type="button"
-                                class="inline-flex rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-700"
+                                class="inline-flex rounded-lg bg-[#7367f0] px-3 py-2 text-xs font-semibold text-white hover:bg-[#685dd8]"
                                 @click="useTemplate(template)"
                             >
                                 Gunakan Template
@@ -530,3 +530,5 @@ watch(selectedStatus, async () => {
         </div>
     </AppLayout>
 </template>
+
+

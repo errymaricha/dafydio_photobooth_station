@@ -15,8 +15,11 @@ class DatabaseSeeder extends Seeder
             DeviceSeeder::class, // optional
             PrinterSeeder::class,
             TemplateSeeder::class,
+            SubscriptionPackageSeeder::class,
+            FinanceAccountSeeder::class,
             PrintAgentSeeder::class,
             DemoWorkflowSeeder::class,
+            ExamplePrintOrderSeeder::class,
             VoucherLibrarySeeder::class,
             SessionVoucherSeeder::class,
         ]);

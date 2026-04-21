@@ -138,36 +138,36 @@ onBeforeUnmount(() => {
     >
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div
-                class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
             >
-                <div class="text-sm text-slate-500">Pending</div>
+                <div class="text-sm text-[#6d6b77]">Pending</div>
                 <div class="mt-2 text-3xl font-bold">
                     {{ summary.pending ?? 0 }}
                 </div>
             </div>
 
             <div
-                class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
             >
-                <div class="text-sm text-slate-500">Processing</div>
+                <div class="text-sm text-[#6d6b77]">Processing</div>
                 <div class="mt-2 text-3xl font-bold">
                     {{ summary.processing ?? 0 }}
                 </div>
             </div>
 
             <div
-                class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
             >
-                <div class="text-sm text-slate-500">Failed</div>
+                <div class="text-sm text-[#6d6b77]">Failed</div>
                 <div class="mt-2 text-3xl font-bold">
                     {{ summary.failed ?? 0 }}
                 </div>
             </div>
 
             <div
-                class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
             >
-                <div class="text-sm text-slate-500">Completed</div>
+                <div class="text-sm text-[#6d6b77]">Completed</div>
                 <div class="mt-2 text-3xl font-bold">
                     {{ summary.completed ?? 0 }}
                 </div>
@@ -182,8 +182,8 @@ onBeforeUnmount(() => {
                 class="rounded-lg border px-3 py-2 text-xs font-semibold transition"
                 :class="
                     filter === item.key
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                        ? 'border-[#7367f0] bg-[#7367f0] text-white'
+                        : 'border-[#e8e6ef] bg-white text-[#6d6b77] hover:bg-[#f5f5f9]'
                 "
                 @click="filter = item.key"
             >
@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div
-            class="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+            class="mt-6 rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
         >
             <div
                 class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
                     <input
                         v-model="search"
                         type="text"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm md:max-w-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm md:max-w-sm"
                         placeholder="Cari job / order / session / printer"
                     />
                 </div>
@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
                 <div class="flex items-center gap-3">
                     <select
                         v-model="filter"
-                        class="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                        class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                     >
                         <option
                             v-for="option in filterOptions"
@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
                     </select>
                     <button
                         type="button"
-                        class="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                        class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
                         :disabled="refreshing"
                         @click="loadData(true)"
                     >
@@ -231,7 +231,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="mb-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+            <div class="mb-4 flex flex-wrap items-center gap-3 text-xs text-[#6d6b77]">
                 <span>Synced: {{ lastSyncedAt ?? '-' }}</span>
                 <span>
                     Menampilkan {{ filteredJobs.length }} dari
@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
                 </span>
             </div>
 
-            <div v-if="loading" class="text-sm text-slate-500">
+            <div v-if="loading" class="text-sm text-[#6d6b77]">
                 Loading queue...
             </div>
 
@@ -252,7 +252,7 @@ onBeforeUnmount(() => {
 
             <div v-else class="overflow-x-auto">
                 <table class="min-w-full text-left text-sm">
-                    <thead class="border-b border-slate-200 text-slate-500">
+                    <thead class="border-b border-[#e8e6ef] text-[#6d6b77]">
                         <tr>
                             <th class="px-4 py-3">Job</th>
                             <th class="px-4 py-3">Order / Session</th>
@@ -268,21 +268,21 @@ onBeforeUnmount(() => {
                         <tr
                             v-for="job in filteredJobs"
                             :key="job.id"
-                            class="border-b border-slate-100"
+                            class="border-b border-[#f1f0f5]"
                             :class="{
                                 'bg-rose-50/60':
                                     (job.status ?? '').toLowerCase() ===
                                     'failed',
                             }"
                         >
-                            <td class="px-4 py-3 font-medium text-slate-800">
+                            <td class="px-4 py-3 font-medium text-[#2f2b3dcc]">
                                 #{{ job.id }}
                             </td>
                             <td class="px-4 py-3">
-                                <div class="font-medium text-slate-700">
+                                <div class="font-medium text-[#2f2b3dcc]">
                                     {{ job.print_order?.order_code ?? '-' }}
                                 </div>
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-[#6d6b77]">
                                     {{ job.session?.session_code ?? '-' }}
                                 </div>
                             </td>
@@ -294,10 +294,10 @@ onBeforeUnmount(() => {
                                     :status="job.status ?? 'unknown'"
                                 />
                             </td>
-                            <td class="max-w-[220px] px-4 py-3 text-xs text-slate-500">
+                            <td class="max-w-[220px] px-4 py-3 text-xs text-[#6d6b77]">
                                 {{ job.last_error ?? '-' }}
                             </td>
-                            <td class="px-4 py-3 text-slate-500">
+                            <td class="px-4 py-3 text-[#6d6b77]">
                                 {{ job.queued_at ?? '-' }}
                             </td>
                             <td class="px-4 py-3">
@@ -307,7 +307,7 @@ onBeforeUnmount(() => {
                                         'failed'
                                     "
                                     type="button"
-                                    class="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-700"
+                                    class="rounded-lg bg-[#7367f0] px-3 py-2 text-xs font-medium text-white hover:bg-[#685dd8]"
                                     @click="retryJob(job.id)"
                                 >
                                     Retry
@@ -320,3 +320,4 @@ onBeforeUnmount(() => {
         </div>
     </AppLayout>
 </template>
+

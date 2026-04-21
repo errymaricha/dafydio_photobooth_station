@@ -186,11 +186,11 @@ onMounted(async () => {
         subtitle="Riwayat session, foto asli, dan hasil foto gabungan template."
     >
         <div class="space-y-6">
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
                 <div class="mb-4 flex items-center justify-between gap-3">
                     <div>
-                        <div class="text-sm text-slate-500">Customer ID</div>
-                        <div class="text-xl font-semibold text-slate-900">
+                        <div class="text-sm text-[#6d6b77]">Customer ID</div>
+                        <div class="text-xl font-semibold text-[#2f2b3dcc]">
                             {{ customer?.customer_id ?? props.customerWhatsapp }}
                         </div>
                     </div>
@@ -198,13 +198,13 @@ onMounted(async () => {
                     <div class="flex items-center gap-2">
                         <Link
                             :href="clientsRoutes.index.url()"
-                            class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                            class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm font-medium text-[#2f2b3dcc] hover:bg-[#f5f5f9]"
                         >
                             Kembali
                         </Link>
                         <button
                             type="button"
-                            class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                            class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm font-medium text-[#2f2b3dcc] hover:bg-[#f5f5f9]"
                             :disabled="refreshing"
                             @click="loadDetail(true)"
                         >
@@ -214,53 +214,53 @@ onMounted(async () => {
                 </div>
 
                 <div class="grid gap-3 sm:grid-cols-4">
-                    <div class="rounded-lg bg-slate-50 p-3">
-                        <div class="text-xs text-slate-500">Total Session</div>
-                        <div class="text-lg font-semibold text-slate-900">
+                    <div class="rounded-lg bg-[#f5f5f9] p-3">
+                        <div class="text-xs text-[#6d6b77]">Total Session</div>
+                        <div class="text-lg font-semibold text-[#2f2b3dcc]">
                             {{ summary?.sessions_count ?? 0 }}
                         </div>
                     </div>
-                    <div class="rounded-lg bg-slate-50 p-3">
-                        <div class="text-xs text-slate-500">Paid Session</div>
-                        <div class="text-lg font-semibold text-slate-900">
+                    <div class="rounded-lg bg-[#f5f5f9] p-3">
+                        <div class="text-xs text-[#6d6b77]">Paid Session</div>
+                        <div class="text-lg font-semibold text-[#2f2b3dcc]">
                             {{ summary?.paid_sessions_count ?? 0 }}
                         </div>
                     </div>
-                    <div class="rounded-lg bg-slate-50 p-3">
-                        <div class="text-xs text-slate-500">Foto Booth</div>
-                        <div class="text-lg font-semibold text-slate-900">
+                    <div class="rounded-lg bg-[#f5f5f9] p-3">
+                        <div class="text-xs text-[#6d6b77]">Foto Booth</div>
+                        <div class="text-lg font-semibold text-[#2f2b3dcc]">
                             {{ summary?.photos_count ?? totalOriginalPhotos }}
                         </div>
                     </div>
-                    <div class="rounded-lg bg-slate-50 p-3">
-                        <div class="text-xs text-slate-500">Hasil Template</div>
-                        <div class="text-lg font-semibold text-slate-900">
+                    <div class="rounded-lg bg-[#f5f5f9] p-3">
+                        <div class="text-xs text-[#6d6b77]">Hasil Template</div>
+                        <div class="text-lg font-semibold text-[#2f2b3dcc]">
                             {{ summary?.rendered_outputs_count ?? 0 }}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
                 <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-slate-900">
+                    <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                         Keamanan Cloud
                     </h3>
-                    <p class="text-sm text-slate-500">
+                    <p class="text-sm text-[#6d6b77]">
                         Set atau reset password histori client untuk login di photobooth cloud.
                     </p>
                 </div>
 
                 <div
-                    class="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700"
+                    class="mb-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3 text-sm text-[#2f2b3dcc]"
                 >
                     Status password:
                     <span
                         class="font-semibold"
                         :class="
                             customer?.has_cloud_password
-                                ? 'text-emerald-700'
-                                : 'text-amber-700'
+                                ? 'text-[#28c76f]'
+                                : 'text-[#ff9f43]'
                         "
                     >
                         {{
@@ -273,39 +273,39 @@ onMounted(async () => {
 
                 <div
                     v-if="passwordFeedback"
-                    class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+                    class="mb-3 rounded-lg border border-[#c8f1da] bg-[#f0fcf5] px-3 py-2 text-sm text-[#28c76f]"
                 >
                     {{ passwordFeedback }}
                 </div>
 
                 <div
                     v-if="passwordError"
-                    class="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+                    class="mb-3 rounded-lg border border-[#ffd5d9] bg-[#fff5f5] px-3 py-2 text-sm text-[#ea5455]"
                 >
                     {{ passwordError }}
                 </div>
 
                 <div class="grid gap-3 md:grid-cols-2">
                     <label class="space-y-2">
-                        <span class="text-sm font-medium text-slate-700">
+                        <span class="text-sm font-medium text-[#2f2b3dcc]">
                             Password Baru
                         </span>
                         <input
                             v-model="cloudPassword"
                             type="password"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                             placeholder="Minimal 8 karakter, kombinasi huruf/angka/simbol"
                         />
                     </label>
 
                     <label class="space-y-2">
-                        <span class="text-sm font-medium text-slate-700">
+                        <span class="text-sm font-medium text-[#2f2b3dcc]">
                             Konfirmasi Password
                         </span>
                         <input
                             v-model="cloudPasswordConfirmation"
                             type="password"
-                            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                            class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
                             placeholder="Ulangi password"
                         />
                     </label>
@@ -314,7 +314,7 @@ onMounted(async () => {
                 <div class="mt-4">
                     <button
                         type="button"
-                        class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        class="rounded-lg bg-[#7367f0] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#685dd8] disabled:cursor-not-allowed disabled:opacity-50"
                         :disabled="savingPassword"
                         @click="saveCloudPassword"
                     >
@@ -323,7 +323,7 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <div v-if="loading" class="text-sm text-slate-500">Loading detail client...</div>
+            <div v-if="loading" class="text-sm text-[#6d6b77]">Loading detail client...</div>
 
             <div v-else-if="!sessions.length">
                 <EmptyState
@@ -336,14 +336,14 @@ onMounted(async () => {
                 <div
                     v-for="session in sessions"
                     :key="session.session_id"
-                    class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                 >
                     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <div class="text-sm font-semibold text-slate-900">
+                            <div class="text-sm font-semibold text-[#2f2b3dcc]">
                                 {{ session.session_code }}
                             </div>
-                            <div class="text-xs text-slate-500">
+                            <div class="text-xs text-[#6d6b77]">
                                 Station: {{ session.station_code ?? '-' }} •
                                 Created: {{ session.created_at ?? '-' }}
                             </div>
@@ -359,12 +359,12 @@ onMounted(async () => {
 
                     <div class="grid gap-4 lg:grid-cols-2">
                         <div>
-                            <div class="mb-2 text-sm font-semibold text-slate-700">
+                            <div class="mb-2 text-sm font-semibold text-[#2f2b3dcc]">
                                 Foto Booth (Original)
                             </div>
                             <div
                                 v-if="!session.photos.length"
-                                class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500"
+                                class="rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3 text-xs text-[#6d6b77]"
                             >
                                 Belum ada foto original.
                             </div>
@@ -382,7 +382,7 @@ onMounted(async () => {
                                     "
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="block overflow-hidden rounded-lg border border-slate-200"
+                                    class="block overflow-hidden rounded-lg border border-[#e8e6ef]"
                                 >
                                     <img
                                         v-if="resolvePhotoUrl(photo)"
@@ -392,11 +392,11 @@ onMounted(async () => {
                                     />
                                     <div
                                         v-else
-                                        class="flex h-28 w-full items-center justify-center bg-slate-100 text-xs text-slate-500"
+                                        class="flex h-28 w-full items-center justify-center bg-[#f1f0f5] text-xs text-[#6d6b77]"
                                     >
                                         No Preview
                                     </div>
-                                    <div class="px-2 py-1 text-xs text-slate-600">
+                                    <div class="px-2 py-1 text-xs text-[#6d6b77]">
                                         #{{ photo.capture_index }}
                                     </div>
                                 </a>
@@ -404,12 +404,12 @@ onMounted(async () => {
                         </div>
 
                         <div>
-                            <div class="mb-2 text-sm font-semibold text-slate-700">
+                            <div class="mb-2 text-sm font-semibold text-[#2f2b3dcc]">
                                 Hasil Gabung Template
                             </div>
                             <div
                                 v-if="!session.rendered_outputs.length"
-                                class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500"
+                                class="rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3 text-xs text-[#6d6b77]"
                             >
                                 Belum ada hasil render template.
                             </div>
@@ -423,7 +423,7 @@ onMounted(async () => {
                                     :href="resolveRenderedUrl(output) ?? '#'"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="block overflow-hidden rounded-lg border border-slate-200"
+                                    class="block overflow-hidden rounded-lg border border-[#e8e6ef]"
                                 >
                                     <img
                                         v-if="resolveRenderedUrl(output)"
@@ -433,15 +433,15 @@ onMounted(async () => {
                                     />
                                     <div
                                         v-else
-                                        class="flex h-36 w-full items-center justify-center bg-slate-100 text-xs text-slate-500"
+                                        class="flex h-36 w-full items-center justify-center bg-[#f1f0f5] text-xs text-[#6d6b77]"
                                     >
                                         No Preview
                                     </div>
-                                    <div class="px-2 py-1 text-xs text-slate-600">
+                                    <div class="px-2 py-1 text-xs text-[#6d6b77]">
                                         v{{ output.version_no }}
                                         <span
                                             v-if="output.is_active"
-                                            class="font-semibold text-emerald-700"
+                                            class="font-semibold text-[#28c76f]"
                                         >
                                             • active
                                         </span>
@@ -455,3 +455,4 @@ onMounted(async () => {
         </div>
     </AppLayout>
 </template>
+

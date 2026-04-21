@@ -146,8 +146,8 @@ onBeforeUnmount(() => {
                 class="rounded-lg border px-3 py-2 text-xs font-semibold transition"
                 :class="
                     status === item.key
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                        ? 'border-[#7367f0] bg-[#7367f0] text-white'
+                        : 'border-[#e8e6ef] bg-white text-[#6d6b77] hover:bg-[#f5f5f9]'
                 "
                 @click="status = item.key"
             >
@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
             </button>
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
             <div
                 class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
             >
@@ -163,13 +163,13 @@ onBeforeUnmount(() => {
                     <input
                         v-model="search"
                         type="text"
-                        class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm md:max-w-sm"
+                        class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm text-[#2f2b3dcc] md:max-w-sm"
                         placeholder="Cari order, session, atau printer"
                     />
 
                     <select
                         v-model="status"
-                        class="rounded-lg border border-slate-300 px-3 py-2 text-sm md:w-48"
+                        class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm text-[#2f2b3dcc] md:w-48"
                     >
                         <option value="all">All Status</option>
                         <option
@@ -182,11 +182,11 @@ onBeforeUnmount(() => {
                     </select>
                 </div>
 
-                <div class="flex items-center gap-3 text-xs text-slate-500">
+                <div class="flex items-center gap-3 text-xs text-[#6d6b77]">
                     <span>Synced: {{ lastSyncedAt ?? '-' }}</span>
                     <button
                         type="button"
-                        class="rounded-lg border border-slate-300 px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100"
+                        class="rounded-lg border border-[#d8d4e7] px-3 py-2 font-semibold text-[#2f2b3dcc] hover:bg-[#f5f5f9]"
                         :disabled="refreshing"
                         @click="loadOrders(true)"
                     >
@@ -195,7 +195,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div v-if="loading" class="text-sm text-slate-500">
+            <div v-if="loading" class="text-sm text-[#6d6b77]">
                 Loading print orders...
             </div>
 
@@ -207,12 +207,12 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-else class="overflow-x-auto">
-                <div class="mb-3 text-xs text-slate-500">
+                <div class="mb-3 text-xs text-[#6d6b77]">
                     Menampilkan {{ filteredOrders.length }} dari
                     {{ orders.length }} order
                 </div>
                 <table class="min-w-full text-left text-sm">
-                    <thead class="border-b border-slate-200 text-slate-500">
+                    <thead class="border-b border-[#e8e6ef] text-[#6d6b77]">
                         <tr>
                             <th class="px-4 py-3">Order</th>
                             <th class="px-4 py-3">Session</th>
@@ -228,28 +228,28 @@ onBeforeUnmount(() => {
                         <tr
                             v-for="order in filteredOrders"
                             :key="order.id"
-                            class="border-b border-slate-100"
+                            class="border-b border-[#f1f0f5]"
                         >
                             <td class="px-4 py-3">
-                                <div class="font-medium text-slate-800">
+                                <div class="font-medium text-[#2f2b3dcc]">
                                     {{ order.order_code }}
                                 </div>
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-[#6d6b77]">
                                     Total: {{ formatAmount(order.total_amount) }}
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-slate-600">
+                            <td class="px-4 py-3 text-[#6d6b77]">
                                 {{ order.session?.session_code ?? '-' }}
                             </td>
                             <td class="px-4 py-3">
-                                <div class="font-medium text-slate-800">
+                                <div class="font-medium text-[#2f2b3dcc]">
                                     {{ order.printer?.name ?? '-' }}
                                 </div>
-                                <div class="text-xs text-slate-500">
+                                <div class="text-xs text-[#6d6b77]">
                                     {{ order.printer?.status ?? 'unassigned' }}
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-slate-600">
+                            <td class="px-4 py-3 text-[#6d6b77]">
                                 {{ order.total_qty ?? 0 }}
                             </td>
                             <td class="px-4 py-3">
@@ -257,13 +257,13 @@ onBeforeUnmount(() => {
                                     :status="order.status ?? 'unknown'"
                                 />
                             </td>
-                            <td class="px-4 py-3 text-slate-500">
+                            <td class="px-4 py-3 text-[#6d6b77]">
                                 {{ order.ordered_at ?? '-' }}
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <Link
                                     :href="printOrderRoutes.show.url(order.id)"
-                                    class="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                    class="text-sm font-medium text-[#7367f0] hover:text-[#685dd8]"
                                 >
                                     Detail
                                 </Link>
