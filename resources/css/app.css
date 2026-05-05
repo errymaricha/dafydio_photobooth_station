@@ -170,3 +170,94 @@
         @apply bg-background text-foreground;
     }
 }
+
+/*
+  Banyak layar station memakai warna brand hardcoded dari rancangan awal.
+  Fallback ini menjaga dark mode tetap terbaca sambil migrasi bertahap ke token
+  Tailwind/theme (`bg-card`, `text-foreground`, `border-border`).
+*/
+.dark body {
+    background: hsl(255 20% 6%);
+    color: hsl(250 24% 94%);
+}
+
+.dark [class*='bg-white'],
+.dark [class*='bg-[#fcfcff]'] {
+    background-color: hsl(252 24% 10%) !important;
+}
+
+.dark [class*='bg-[#f5f5f9]'],
+.dark [class*='bg-[#f4f5fb]'],
+.dark [class*='bg-[#f4f3fa]'],
+.dark [class*='bg-[#f1f0f5]'] {
+    background-color: hsl(252 20% 14%) !important;
+}
+
+.dark [class*='bg-[#eeecff]'],
+.dark [class*='bg-[#edeafd]'],
+.dark [class*='bg-[#eceafc]'],
+.dark [class*='bg-[#e6e4f8]'] {
+    background-color: hsl(251 32% 20%) !important;
+}
+
+.dark [class*='bg-[#e8f7ef]'],
+.dark [class*='bg-[#f0fcf5]'] {
+    background-color: hsl(150 38% 14%) !important;
+}
+
+.dark [class*='bg-[#fff1e3]'] {
+    background-color: hsl(32 46% 16%) !important;
+}
+
+.dark [class*='bg-[#ffe9ea]'],
+.dark [class*='bg-[#fff5f5]'] {
+    background-color: hsl(356 38% 15%) !important;
+}
+
+.dark [class*='border-[#e8e6ef]'],
+.dark [class*='border-[#d8d4e7]'],
+.dark [class*='border-[#d8d4ff]'],
+.dark [class*='border-[#ebe8f6]'],
+.dark [class*='border-[#c8c4d7]'] {
+    border-color: hsl(252 20% 22%) !important;
+}
+
+.dark [class*='border-[#c8f1da]'] {
+    border-color: hsl(150 42% 28%) !important;
+}
+
+.dark [class*='border-[#ffd5d9]'] {
+    border-color: hsl(356 42% 28%) !important;
+}
+
+.dark [class*='text-[#2f2b3d'] {
+    color: hsl(250 24% 94%) !important;
+}
+
+.dark [class*='text-[#6d6b77]'],
+.dark [class*='text-[#8a8794]'],
+.dark [class*='text-[#a8a6b3]'],
+.dark [class*='text-[#b3b1bb]'] {
+    color: hsl(253 12% 68%) !important;
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+    background-color: hsl(252 24% 10%);
+    border-color: hsl(252 20% 25%);
+    color: hsl(250 24% 94%);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: hsl(253 12% 58%);
+}
+
+.dark table tbody tr {
+    border-color: hsl(252 20% 18%);
+}
+
+.dark img {
+    color-scheme: dark;
+}

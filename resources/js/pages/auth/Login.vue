@@ -8,9 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { register } from '@/routes';
+import { register } from '@/lib/stationRoutes';
 import * as loginRoutes from '@/routes/login';
 import * as password from '@/routes/password';
+
+const csrfToken =
+    typeof document === 'undefined'
+        ? ''
+        : document
+              .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+              ?.getAttribute('content') || '';
 </script>
 
 <template>
@@ -33,7 +40,7 @@ import * as password from '@/routes/password';
         />
 
         <div
-            class="relative z-10 w-full max-w-[28rem] rounded-xl border border-[#ebe8f6] bg-white px-8 py-10 shadow-[0_6px_20px_rgba(47,43,61,0.08)]"
+            class="relative z-10 w-full max-w-md rounded-xl border border-[#ebe8f6] bg-white px-8 py-10 shadow-[0_6px_20px_rgba(47,43,61,0.08)]"
         >
             <div class="mb-8 flex items-center justify-center gap-3">
                 <span class="text-[#7367f0]">
@@ -59,11 +66,17 @@ import * as password from '@/routes/password';
                         />
                     </svg>
                 </span>
-                <h1 class="text-[2rem] leading-none font-semibold text-[#2f2b3dcf]">Dafydio Station</h1>
+                <h1
+                    class="text-[2rem] leading-none font-semibold text-[#2f2b3dcf]"
+                >
+                    Dafydio Station
+                </h1>
             </div>
 
             <div class="mb-7">
-                <h2 class="text-[2rem] leading-tight font-medium text-[#2f2b3dcc]">
+                <h2
+                    class="text-[2rem] leading-tight font-medium text-[#2f2b3dcc]"
+                >
                     Welcome to Dafydio Station! 👋
                 </h2>
                 <p class="mt-1 text-[1.0625rem] text-[#2f2b3d99]">
@@ -76,6 +89,8 @@ import * as password from '@/routes/password';
                 v-slot="{ errors, processing }"
                 class="space-y-5"
             >
+                <input type="hidden" name="_token" :value="csrfToken" />
+
                 <div class="grid gap-2">
                     <Label
                         for="email"
@@ -122,8 +137,8 @@ import * as password from '@/routes/password';
                             type="checkbox"
                             name="remember"
                             value="1"
-                            class="h-[1.125rem] w-[1.125rem] rounded-sm border border-[#d8d4e7] text-[#7367f0] focus:ring-[#7367f0]"
-                        >
+                            class="h-4.5 w-4.5 rounded-sm border border-[#d8d4e7] text-[#7367f0] focus:ring-[#7367f0]"
+                        />
                         Remember me
                     </label>
                     <TextLink
@@ -193,4 +208,3 @@ import * as password from '@/routes/password';
         </div>
     </div>
 </template>
-

@@ -2,16 +2,25 @@
 
 use App\Http\Controllers\Api\Auth\LoginController;
 use App\Http\Controllers\Api\Device\AuthController;
+use App\Http\Controllers\Api\Device\EditJobController as DeviceEditJobController;
+use App\Http\Controllers\Api\Device\HeartbeatController as DeviceHeartbeatController;
 use App\Http\Controllers\Api\Device\MasterDataController;
+use App\Http\Controllers\Api\Device\RenderController as DeviceRenderController;
+use App\Http\Controllers\Api\Device\RenderedOutputController as DeviceRenderedOutputController;
 use App\Http\Controllers\Api\Device\SessionController as DeviceSessionController;
+use App\Http\Controllers\Api\Device\TemplateAssetController as DeviceTemplateAssetController;
+use App\Http\Controllers\Api\Device\TemplateController as DeviceTemplateController;
 use App\Http\Controllers\Api\Device\UploadController;
 use App\Http\Controllers\Api\Editor\CustomerCloudAccountController;
 use App\Http\Controllers\Api\Editor\CustomerSubscriptionController;
+use App\Http\Controllers\Api\Editor\CustomerTierController;
 use App\Http\Controllers\Api\Editor\DashboardController;
+use App\Http\Controllers\Api\Editor\DeviceController;
 use App\Http\Controllers\Api\Editor\EditJobController;
 use App\Http\Controllers\Api\Editor\FinanceController;
 use App\Http\Controllers\Api\Editor\PricingController;
 use App\Http\Controllers\Api\Editor\PrinterController;
+use App\Http\Controllers\Api\Editor\PrinterDiscoveryController;
 use App\Http\Controllers\Api\Editor\PrintLogController;
 use App\Http\Controllers\Api\Editor\PrintOrderController;
 use App\Http\Controllers\Api\Editor\PrintQueueController;
@@ -21,6 +30,7 @@ use App\Http\Controllers\Api\Editor\SessionManualPaymentController;
 use App\Http\Controllers\Api\Editor\SessionVoucherController;
 use App\Http\Controllers\Api\Editor\TemplateController;
 use App\Http\Controllers\Api\Editor\VoucherController;
+use App\Http\Controllers\Api\PrintAgent\DetectedPrinterController as PrintAgentDetectedPrinterController;
 use App\Http\Controllers\Api\PrintAgent\HeartbeatController;
 use App\Http\Controllers\Api\PrintAgent\QueueController as PrintAgentQueueController;
 use Illuminate\Support\Facades\Route;
@@ -29,9 +39,16 @@ Route::post('/auth/login', [LoginController::class, 'store']);
 
 Route::prefix('device')->group(function () {
     Route::post('/auth', [AuthController::class, 'login']);
+    Route::get('/template-assets/{assetFile}', [DeviceTemplateAssetController::class, 'show'])
+        ->middleware('signed:relative')
+        ->name('api.device.template-assets.show');
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/heartbeat', [DeviceHeartbeatController::class, 'store']);
+        Route::get('/template-assets/{assetFile}/diagnose', [DeviceTemplateAssetController::class, 'diagnose']);
         Route::get('/master-data', [MasterDataController::class, 'index']);
+        Route::get('/templates', [DeviceTemplateController::class, 'index']);
+        Route::get('/templates/{template}', [DeviceTemplateController::class, 'show']);
         Route::post('/vouchers/verify', [DeviceSessionController::class, 'verifyVoucher']);
         Route::post('/payment-quote', [DeviceSessionController::class, 'paymentQuote']);
         Route::post('/sessions', [DeviceSessionController::class, 'store']);
@@ -39,6 +56,9 @@ Route::prefix('device')->group(function () {
         Route::post('/sessions/{session}/confirm-payment', [DeviceSessionController::class, 'confirmPayment']);
         Route::post('/sessions/{session}/photos', [UploadController::class, 'store']);
         Route::post('/sessions/{session}/complete', [DeviceSessionController::class, 'complete']);
+        Route::post('/sessions/{session}/edit-jobs', [DeviceEditJobController::class, 'store']);
+        Route::post('/edit-jobs/{editJob}/render', [DeviceRenderController::class, 'store']);
+        Route::post('/sessions/{session}/rendered-output', [DeviceRenderedOutputController::class, 'store']);
     });
 });
 
@@ -67,23 +87,28 @@ Route::prefix('editor')
         Route::get('/print-queue-summary', [PrintQueueController::class, 'summary']);
         Route::get('/printers', [PrinterController::class, 'index']);
         Route::get('/printers/{printer}', [PrinterController::class, 'show']);
+        Route::get('/printer-discovery', [PrinterDiscoveryController::class, 'index']);
+        Route::post('/printer-discovery/{detection}', [PrinterDiscoveryController::class, 'store']);
 
         Route::get('/print-logs', [PrintLogController::class, 'index']);
         Route::get('/print-orders/{printOrder}/logs', [PrintLogController::class, 'byOrder']);
 
         Route::post('/templates', [TemplateController::class, 'store']);
         Route::get('/templates', [TemplateController::class, 'index']);
+        Route::get('/templates/qr-preview', [TemplateController::class, 'qrPreview']);
         Route::get('/templates/{template}', [TemplateController::class, 'show']);
         Route::patch('/templates/{template}', [TemplateController::class, 'update']);
         Route::post('/templates/{template}/duplicate', [TemplateController::class, 'duplicate']);
         Route::post('/templates/{template}/overlay', [TemplateController::class, 'uploadOverlay']);
-        Route::get('/templates/qr-preview', [TemplateController::class, 'qrPreview']);
+        Route::post('/templates/{template}/thumbnail', [TemplateController::class, 'uploadThumbnail']);
         Route::delete('/templates/{template}', [TemplateController::class, 'destroy']);
         Route::post('/templates/{template}/slots', [TemplateController::class, 'updateSlots']);
         Route::post('/templates/{template}/slots/create', [TemplateController::class, 'storeSlot']);
         Route::delete('/templates/{template}/slots/{slotIndex}', [TemplateController::class, 'destroySlot']);
 
         Route::get('/dashboard', [DashboardController::class, 'index']);
+        Route::get('/devices', [DeviceController::class, 'index']);
+        Route::post('/devices', [DeviceController::class, 'store']);
         Route::get('/finance/accounts', [FinanceController::class, 'accounts']);
         Route::get('/finance/reports/daily-pnl', [FinanceController::class, 'dailyPnl']);
         Route::get('/finance/transactions', [FinanceController::class, 'transactions']);
@@ -93,6 +118,7 @@ Route::prefix('editor')
         Route::post('/customers/cloud-account', [CustomerCloudAccountController::class, 'upsert']);
         Route::get('/customers/{customerWhatsapp}/history', [CustomerCloudAccountController::class, 'history']);
         Route::get('/customers/{customerWhatsapp}/cloud-sync', [CustomerCloudAccountController::class, 'cloudSync']);
+        Route::patch('/customers/{customerWhatsapp}/tier', [CustomerTierController::class, 'update']);
         Route::post('/customers/{customerWhatsapp}/subscriptions/upgrade', [CustomerSubscriptionController::class, 'upgrade']);
         Route::post('/customers/{customerWhatsapp}/subscriptions/downgrade', [CustomerSubscriptionController::class, 'downgrade']);
         Route::get('/pricing', [PricingController::class, 'index']);
@@ -115,5 +141,6 @@ Route::prefix('print-agent')
         Route::post('/jobs/{job}/complete', [PrintAgentQueueController::class, 'complete']);
         Route::post('/jobs/{job}/fail', [PrintAgentQueueController::class, 'fail']);
         Route::post('/heartbeat', [HeartbeatController::class, 'store']);
+        Route::post('/printers/sync', [PrintAgentDetectedPrinterController::class, 'sync']);
 
     });

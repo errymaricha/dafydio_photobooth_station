@@ -8,13 +8,14 @@ import {
     ScanLine,
     UsersRound,
 } from 'lucide-vue-next';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 import { index as dashboardIndex } from '@/actions/App/Http/Controllers/Api/Editor/DashboardController';
 import { index as printersIndex } from '@/actions/App/Http/Controllers/Api/Editor/PrinterController';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 
 type PrinterItem = {
@@ -133,7 +134,6 @@ const dashboard = ref<DashboardResponse | null>(null);
 const printers = ref<PrinterItem[]>([]);
 const activities = ref<ActivityItem[]>([]);
 const lastSyncedAt = ref<string | null>(null);
-let refreshTimer: number | null = null;
 
 const formatAmount = (amount?: number): string => {
     return new Intl.NumberFormat('id-ID', {
@@ -191,18 +191,15 @@ const loadData = async (silent = false): Promise<void> => {
     }
 };
 
-onMounted(async () => {
-    await loadData();
-
-    refreshTimer = window.setInterval(() => {
-        void loadData(true);
-    }, 30000);
+const polling = useAdaptivePolling(() => loadData(true), {
+    activeIntervalMs: 60_000,
+    idleIntervalMs: 120_000,
+    autoStart: false,
 });
 
-onBeforeUnmount(() => {
-    if (refreshTimer !== null) {
-        window.clearInterval(refreshTimer);
-    }
+onMounted(async () => {
+    await loadData();
+    polling.start();
 });
 </script>
 

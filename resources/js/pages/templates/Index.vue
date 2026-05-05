@@ -28,6 +28,7 @@ type TemplateItem = {
     paper_size?: string | null;
     canvas_width?: number | null;
     canvas_height?: number | null;
+    thumbnail_url?: string | null;
     preview_url?: string | null;
     status?: string | null;
     updated_at?: string | null;
@@ -56,7 +57,6 @@ const createForm = ref({
 const search = ref('');
 const selectedCategory = ref('all');
 const selectedPaperSize = ref('all');
-const selectedSlotCount = ref('all');
 const selectedStatus = ref('active');
 const feedback = ref<string | null>(null);
 
@@ -84,14 +84,6 @@ const paperSizeOptions = computed(() => {
     return ['all', ...options];
 });
 
-const slotCountOptions = computed(() => {
-    const options = [
-        ...new Set(templates.value.map((template) => template.slots.length)),
-    ].sort((left, right) => left - right);
-
-    return ['all', ...options.map((value) => value.toString())];
-});
-
 const statusOptions = [
     { value: 'active', label: 'Hanya Aktif' },
     { value: 'archived', label: 'Hanya Arsip' },
@@ -111,9 +103,6 @@ const filteredTemplates = computed(() => {
         const matchesPaperSize =
             selectedPaperSize.value === 'all' ||
             template.paper_size === selectedPaperSize.value;
-        const matchesSlotCount =
-            selectedSlotCount.value === 'all' ||
-            template.slots.length === Number(selectedSlotCount.value);
         const matchesStatus =
             selectedStatus.value === 'all' ||
             (template.status ?? 'active') === selectedStatus.value;
@@ -122,26 +111,10 @@ const filteredTemplates = computed(() => {
             matchesSearch &&
             matchesCategory &&
             matchesPaperSize &&
-            matchesSlotCount &&
             matchesStatus
         );
     });
 });
-
-function getSlotPreviewStyle(
-    template: TemplateItem,
-    slot: TemplateSlot,
-): Record<string, string> {
-    const canvasWidth = Math.max(template.canvas_width ?? 1, 1);
-    const canvasHeight = Math.max(template.canvas_height ?? 1, 1);
-
-    return {
-        left: `${((slot.x ?? 0) / canvasWidth) * 100}%`,
-        top: `${((slot.y ?? 0) / canvasHeight) * 100}%`,
-        width: `${(slot.width / canvasWidth) * 100}%`,
-        height: `${(slot.height / canvasHeight) * 100}%`,
-    };
-}
 
 function useTemplate(template: TemplateItem): void {
     if (typeof window !== 'undefined') {
@@ -209,6 +182,7 @@ onMounted(async () => {
 
 watch(selectedStatus, async () => {
     loading.value = true;
+
     try {
         templates.value = await get<TemplateItem[]>(listTemplates(), {
             status: selectedStatus.value,
@@ -343,7 +317,7 @@ watch(selectedStatus, async () => {
                 </div>
             </div>
 
-            <div class="mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <div class="mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 <select
                     v-model="selectedCategory"
                     class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
@@ -374,23 +348,6 @@ watch(selectedStatus, async () => {
                             option === 'all'
                                 ? 'Semua Paper Size'
                                 : option
-                        }}
-                    </option>
-                </select>
-
-                <select
-                    v-model="selectedSlotCount"
-                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
-                >
-                    <option
-                        v-for="option in slotCountOptions"
-                        :key="option"
-                        :value="option"
-                    >
-                        {{
-                            option === 'all'
-                                ? 'Semua Jumlah Slot'
-                                : `${option} Slot`
                         }}
                     </option>
                 </select>
@@ -433,28 +390,14 @@ watch(selectedStatus, async () => {
                             v-if="template.preview_url"
                             :src="template.preview_url"
                             :alt="template.template_name"
-                            class="absolute inset-0 h-full w-full object-cover opacity-25"
+                            class="absolute inset-0 h-full w-full object-cover"
                         />
 
                         <div
-                            v-if="!template.slots.length"
+                            v-if="!template.preview_url"
                             class="px-4 text-center text-sm text-[#b3b1bb]"
                         >
                             Preview belum tersedia
-                        </div>
-
-                        <div
-                            v-else
-                            class="relative h-full w-full"
-                        >
-                            <div
-                                v-for="slot in template.slots"
-                                :key="slot.slot_index"
-                                class="absolute flex items-center justify-center rounded-lg border border-[#9f96f5] bg-[#edeafd] text-[11px] font-semibold text-[#685dd8]"
-                                :style="getSlotPreviewStyle(template, slot)"
-                            >
-                                {{ slot.slot_index }}
-                            </div>
                         </div>
                     </div>
 
@@ -483,10 +426,16 @@ watch(selectedStatus, async () => {
                                 >
                                     {{ (template.status ?? 'active') === 'archived' ? 'Archived' : 'Active' }}
                                 </div>
+                                <div
+                                    v-if="template.thumbnail_url"
+                                    class="rounded-full bg-[#edeafd] px-2.5 py-1 text-[11px] font-semibold text-[#685dd8]"
+                                >
+                                    Thumbnail aktif
+                                </div>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-3 text-sm">
+                        <div class="grid grid-cols-2 gap-3 text-sm">
                             <div class="rounded-lg bg-[#f5f5f9] p-3">
                                 <div class="text-xs text-[#b3b1bb]">Category</div>
                                 <div class="mt-1 font-medium text-[#2f2b3dcc]">
@@ -498,13 +447,6 @@ watch(selectedStatus, async () => {
                                 <div class="text-xs text-[#b3b1bb]">Canvas</div>
                                 <div class="mt-1 font-medium text-[#2f2b3dcc]">
                                     {{ template.canvas_width ?? 0 }}x{{ template.canvas_height ?? 0 }}
-                                </div>
-                            </div>
-
-                            <div class="rounded-lg bg-[#f5f5f9] p-3">
-                                <div class="text-xs text-[#b3b1bb]">Slots</div>
-                                <div class="mt-1 font-medium text-[#2f2b3dcc]">
-                                    {{ template.slots.length }}
                                 </div>
                             </div>
                         </div>

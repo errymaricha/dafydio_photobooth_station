@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import { index as printersApiIndex } from '@/actions/App/Http/Controllers/Api/Editor/PrinterController';
+import {
+    index as detectedPrintersApiIndex,
+    store as storePrinterFromDetection,
+} from '@/actions/App/Http/Controllers/Api/Editor/PrinterDiscoveryController';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 import * as printerRoutes from '@/routes/printers';
 
@@ -25,14 +30,38 @@ type Printer = {
     last_error?: string | null;
 };
 
-const { get } = useApi();
+type DetectedPrinter = {
+    id: string;
+    os_identifier: string;
+    printer_name: string;
+    connection_type?: string | null;
+    ip_address?: string | null;
+    port?: number | null;
+    driver_name?: string | null;
+    paper_size_default?: string | null;
+    status?: string | null;
+    linked_printer?: {
+        id: string;
+        printer_code?: string | null;
+        printer_name?: string | null;
+    } | null;
+    station?: {
+        code?: string | null;
+    } | null;
+    last_seen_at?: string | null;
+};
+
+const { get, post } = useApi();
 const printers = ref<Printer[]>([]);
+const detectedPrinters = ref<DetectedPrinter[]>([]);
 const loading = ref(true);
 const refreshing = ref(false);
+const actionMessage = ref<string | null>(null);
+const actionError = ref<string | null>(null);
+const linkingDetectionId = ref<string | null>(null);
 const search = ref('');
 const filter = ref('all');
 const lastSyncedAt = ref<string | null>(null);
-let refreshTimer: number | null = null;
 
 const statusOptions = [
     { key: 'all', label: 'All' },
@@ -100,6 +129,38 @@ const summaryItems = computed(() => {
     }));
 });
 
+const pendingDetections = computed(() => {
+    return detectedPrinters.value.filter((item) => !item.linked_printer);
+});
+
+const normalizeDetectionsResponse = (
+    payload: unknown,
+): DetectedPrinter[] => {
+    if (Array.isArray(payload)) {
+        return payload as DetectedPrinter[];
+    }
+
+    if (
+        payload &&
+        typeof payload === 'object' &&
+        'data' in payload &&
+        Array.isArray((payload as { data: unknown }).data)
+    ) {
+        return (payload as { data: DetectedPrinter[] }).data;
+    }
+
+    if (
+        payload &&
+        typeof payload === 'object' &&
+        'id' in payload &&
+        'printer_name' in payload
+    ) {
+        return [payload as DetectedPrinter];
+    }
+
+    return [];
+};
+
 const loadPrinters = async (silent = false): Promise<void> => {
     if (silent) {
         refreshing.value = true;
@@ -108,12 +169,16 @@ const loadPrinters = async (silent = false): Promise<void> => {
     }
 
     try {
-        const response = await get<{ data?: Printer[] } | Printer[]>(
-            printersApiIndex(),
-        );
+        const [response, detectionResponse] = await Promise.all([
+            get<{ data?: Printer[] } | Printer[]>(printersApiIndex()),
+            get<DetectedPrinter[] | { data: DetectedPrinter[] } | DetectedPrinter>(
+                detectedPrintersApiIndex(),
+            ),
+        ]);
         printers.value = Array.isArray(response)
             ? response
             : (response.data ?? []);
+        detectedPrinters.value = normalizeDetectionsResponse(detectionResponse);
         lastSyncedAt.value = new Date().toLocaleTimeString('id-ID');
     } finally {
         if (silent) {
@@ -124,18 +189,33 @@ const loadPrinters = async (silent = false): Promise<void> => {
     }
 };
 
-onMounted(async () => {
-    await loadPrinters();
+const addPrinterFromDetection = async (detection: DetectedPrinter): Promise<void> => {
+    actionMessage.value = null;
+    actionError.value = null;
+    linkingDetectionId.value = detection.id;
 
-    refreshTimer = window.setInterval(() => {
-        void loadPrinters(true);
-    }, 20000);
+    try {
+        await post(storePrinterFromDetection(detection.id), {});
+        await loadPrinters(true);
+        actionMessage.value = `Printer ${detection.printer_name} berhasil ditambahkan.`;
+    } catch (error: unknown) {
+        actionError.value =
+            (error as { response?: { data?: { message?: string } } })?.response
+                ?.data?.message ?? 'Gagal menambahkan printer dari hasil deteksi.';
+    } finally {
+        linkingDetectionId.value = null;
+    }
+};
+
+const polling = useAdaptivePolling(() => loadPrinters(true), {
+    activeIntervalMs: 30_000,
+    idleIntervalMs: 60_000,
+    autoStart: false,
 });
 
-onBeforeUnmount(() => {
-    if (refreshTimer !== null) {
-        window.clearInterval(refreshTimer);
-    }
+onMounted(async () => {
+    await loadPrinters();
+    polling.start();
 });
 </script>
 
@@ -159,6 +239,20 @@ onBeforeUnmount(() => {
             >
                 {{ item.label }}: {{ item.count }}
             </button>
+        </div>
+
+        <div
+            v-if="actionMessage"
+            class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+        >
+            {{ actionMessage }}
+        </div>
+
+        <div
+            v-if="actionError"
+            class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+            {{ actionError }}
         </div>
 
         <div
@@ -195,6 +289,58 @@ onBeforeUnmount(() => {
                 >
                     {{ refreshing ? 'Refreshing...' : 'Refresh' }}
                 </button>
+            </div>
+        </div>
+
+        <div class="mb-6 rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
+            <div class="mb-3 flex items-center justify-between gap-3">
+                <h2 class="text-base font-semibold text-[#2f2b3dcc]">
+                    Deteksi Printer OS
+                </h2>
+                <span class="rounded-full bg-[#f1f0f5] px-2.5 py-1 text-xs font-semibold text-[#6d6b77]">
+                    {{ pendingDetections.length }} belum ditambahkan
+                </span>
+            </div>
+
+            <div v-if="!pendingDetections.length" class="text-sm text-[#6d6b77]">
+                Belum ada hasil deteksi baru dari print-agent.
+            </div>
+
+            <div v-else class="grid gap-3 md:grid-cols-2">
+                <div
+                    v-for="detection in pendingDetections"
+                    :key="detection.id"
+                    class="rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-4"
+                >
+                    <div class="mb-2 flex items-start justify-between gap-2">
+                        <div>
+                            <p class="font-semibold text-[#2f2b3dcc]">
+                                {{ detection.printer_name }}
+                            </p>
+                            <p class="text-xs text-[#6d6b77]">
+                                Station: {{ detection.station?.code ?? '-' }}
+                            </p>
+                        </div>
+                        <StatusBadge :status="detection.status ?? 'ready'" />
+                    </div>
+                    <p class="text-xs text-[#6d6b77]">
+                        {{ detection.connection_type ?? 'network' }}
+                        <span v-if="detection.ip_address"> | {{ detection.ip_address }}:{{ detection.port ?? '-' }}</span>
+                        <span v-if="detection.driver_name"> | {{ detection.driver_name }}</span>
+                    </p>
+                    <button
+                        type="button"
+                        class="mt-3 rounded-lg bg-[#7367f0] px-3 py-2 text-xs font-semibold text-white hover:bg-[#685dd8] disabled:cursor-not-allowed disabled:opacity-60"
+                        :disabled="linkingDetectionId === detection.id"
+                        @click="addPrinterFromDetection(detection)"
+                    >
+                        {{
+                            linkingDetectionId === detection.id
+                                ? 'Menambahkan...'
+                                : 'Tambahkan ke Printer'
+                        }}
+                    </button>
+                </div>
             </div>
         </div>
 

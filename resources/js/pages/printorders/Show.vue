@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 import { show as showPrintOrder } from '@/actions/App/Http/Controllers/Api/Editor/PrintOrderController';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 import * as printQueueRoutes from '@/routes/print-queue';
 import * as sessionsRoutes from '@/routes/sessions';
@@ -49,7 +50,6 @@ const order = ref<PrintOrderDetail | null>(null);
 const loading = ref(true);
 const refreshing = ref(false);
 const lastSyncedAt = ref<string | null>(null);
-let refreshTimer: number | null = null;
 
 const formatAmount = (amount?: number | string): string => {
     if (amount === null || amount === undefined || amount === '') {
@@ -90,18 +90,15 @@ const loadOrder = async (silent = false): Promise<void> => {
     }
 };
 
-onMounted(async () => {
-    await loadOrder();
-
-    refreshTimer = window.setInterval(() => {
-        void loadOrder(true);
-    }, 20000);
+const polling = useAdaptivePolling(() => loadOrder(true), {
+    activeIntervalMs: 30_000,
+    idleIntervalMs: 60_000,
+    autoStart: false,
 });
 
-onBeforeUnmount(() => {
-    if (refreshTimer !== null) {
-        window.clearInterval(refreshTimer);
-    }
+onMounted(async () => {
+    await loadOrder();
+    polling.start();
 });
 </script>
 

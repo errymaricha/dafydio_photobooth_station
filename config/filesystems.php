@@ -77,4 +77,22 @@ return [
         public_path('storage') => storage_path('app/public'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Template Asset Delivery
+    |--------------------------------------------------------------------------
+    |
+    | Controls how signed template asset endpoints deliver binaries.
+    | - php_stream: stream by PHP (supports Range in app layer)
+    | - x_sendfile: delegate file transfer to web server via X-Sendfile header
+    | - x_accel_redirect: delegate to nginx internal location
+    |
+    */
+    'template_assets' => [
+        'delivery_driver' => env('TEMPLATE_ASSET_DELIVERY_DRIVER', 'php_stream'),
+        'x_sendfile_header' => env('TEMPLATE_ASSET_X_SENDFILE_HEADER', 'X-Sendfile'),
+        'x_accel_prefix' => env('TEMPLATE_ASSET_X_ACCEL_PREFIX', '/internal-storage'),
+        'x_accel_root' => env('TEMPLATE_ASSET_X_ACCEL_ROOT', storage_path('app/public')),
+    ],
+
 ];

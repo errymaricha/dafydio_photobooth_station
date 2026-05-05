@@ -6,6 +6,7 @@ import {
     ClipboardList,
     FolderGit2,
     LayoutGrid,
+    MonitorSmartphone,
     Printer,
     ScanLine,
     Shapes,
@@ -25,8 +26,9 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard } from '@/lib/stationRoutes';
 import * as clientsRoutes from '@/routes/clients';
+import * as devicesRoutes from '@/routes/devices';
 import * as financeRoutes from '@/routes/finance';
 import * as pricingRoutes from '@/routes/pricing';
 import * as printLogsRoutes from '@/routes/print-logs';
@@ -76,6 +78,11 @@ const sidebarSections: SidebarSection[] = [
                 title: 'Pricing',
                 href: pricingRoutes.index(),
                 icon: Tags,
+            },
+            {
+                title: 'Devices',
+                href: devicesRoutes.index(),
+                icon: MonitorSmartphone,
             },
         ],
     },
@@ -149,9 +156,11 @@ const footerNavItems: NavItem[] = [
     <Sidebar
         collapsible="icon"
         variant="sidebar"
-        class="border-r border-[#e8e6ef] bg-white"
+        class="border-r border-[#e8e6ef] bg-white dark:border-[#29243a] dark:bg-[#111018]"
     >
-        <SidebarHeader class="border-b border-[#e8e6ef] px-3 py-3">
+        <SidebarHeader
+            class="border-b border-[#e8e6ef] px-3 py-3 dark:border-[#29243a]"
+        >
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
@@ -164,7 +173,9 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent class="py-2">
-            <div class="pointer-events-none mx-3 mb-1 h-2 bg-gradient-to-b from-black/6 to-transparent" />
+            <div
+                class="pointer-events-none mx-3 mb-1 h-2 bg-gradient-to-b from-black/6 to-transparent dark:from-white/8"
+            />
             <NavMain
                 v-for="section in sidebarSections"
                 :key="section.label"
@@ -173,10 +184,12 @@ const footerNavItems: NavItem[] = [
             />
         </SidebarContent>
 
-        <SidebarFooter class="border-t border-[#e8e6ef] px-3 pb-3">
+        <SidebarFooter
+            class="border-t border-[#e8e6ef] px-3 pb-3 dark:border-[#29243a]"
+        >
             <NavFooter
                 :items="footerNavItems"
-                class="px-0 [&_[data-slot='sidebar-menu-button']]:text-[#6d6b77] [&_[data-slot='sidebar-menu-button']]:hover:bg-[#f4f5fb] [&_[data-slot='sidebar-menu-button']]:hover:text-[#2f2b3dcc]"
+                class="px-0 [&_[data-slot='sidebar-menu-button']]:text-[#6d6b77] [&_[data-slot='sidebar-menu-button']]:hover:bg-[#f4f5fb] [&_[data-slot='sidebar-menu-button']]:hover:text-[#2f2b3dcc] dark:[&_[data-slot='sidebar-menu-button']]:text-[#a9a3bd] dark:[&_[data-slot='sidebar-menu-button']]:hover:bg-[#1c1928] dark:[&_[data-slot='sidebar-menu-button']]:hover:text-[#f4f2ff]"
             />
         </SidebarFooter>
     </Sidebar>

@@ -183,6 +183,84 @@ class CustomerSubscriptionTest extends TestCase
         );
     }
 
+    public function test_editor_can_set_customer_local_tier_to_premium(): void
+    {
+        $editor = $this->createEditorUser();
+        Sanctum::actingAs($editor);
+
+        $customer = Customer::query()->create([
+            'id' => (string) Str::uuid(),
+            'customer_whatsapp' => '6281234567890',
+            'tier' => 'regular',
+            'status' => 'active',
+        ]);
+
+        $this->patchJson('/api/editor/customers/0812-3456-7890/tier', [
+            'tier' => 'premium',
+            'notes' => 'VIP lokal station',
+        ])
+            ->assertOk()
+            ->assertJsonPath('customer_tier', 'premium');
+
+        $this->assertDatabaseHas('customers', [
+            'id' => $customer->id,
+            'tier' => 'premium',
+        ]);
+    }
+
+    public function test_setting_customer_local_tier_to_regular_cancels_active_subscription(): void
+    {
+        $editor = $this->createEditorUser();
+        Sanctum::actingAs($editor);
+
+        $customer = Customer::query()->create([
+            'id' => (string) Str::uuid(),
+            'customer_whatsapp' => '6281234567890',
+            'tier' => 'premium',
+            'status' => 'active',
+        ]);
+
+        $package = SubscriptionPackage::query()->create([
+            'id' => (string) Str::uuid(),
+            'package_code' => 'PREMIUM-30',
+            'package_name' => 'Premium 30 Hari',
+            'duration_days' => 30,
+            'session_quota' => 100,
+            'print_quota' => 200,
+            'price' => 199000,
+            'is_active' => true,
+        ]);
+
+        CustomerSubscription::query()->create([
+            'id' => (string) Str::uuid(),
+            'customer_id' => $customer->id,
+            'package_id' => $package->id,
+            'status' => 'active',
+            'start_at' => now()->subDay(),
+            'end_at' => now()->addDays(29),
+            'auto_renew' => false,
+        ]);
+
+        $this->patchJson('/api/editor/customers/0812-3456-7890/tier', [
+            'tier' => 'regular',
+            'notes' => 'Kembali regular lokal',
+        ])
+            ->assertOk()
+            ->assertJsonPath('customer_tier', 'regular')
+            ->assertJsonPath('cancelled_subscriptions', 1);
+
+        $this->assertDatabaseHas('customers', [
+            'id' => $customer->id,
+            'tier' => 'regular',
+        ]);
+
+        $this->assertDatabaseHas('customer_subscriptions', [
+            'customer_id' => $customer->id,
+            'status' => 'cancelled',
+            'notes' => 'Kembali regular lokal',
+        ]);
+    }
+
     private function createEditorUser(): User
     {
         $user = User::factory()->create();

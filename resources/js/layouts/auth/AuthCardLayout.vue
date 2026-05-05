@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { dashboard } from '@/routes';
+import { dashboard } from '@/lib/stationRoutes';
 
 defineProps<{
     title?: string;

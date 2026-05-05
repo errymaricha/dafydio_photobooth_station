@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import { show as showPrinter } from '@/actions/App/Http/Controllers/Api/Editor/PrinterController';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatsCard from '@/components/ui/StatsCard.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 import * as printOrderRoutes from '@/routes/print-orders';
 import * as printQueueRoutes from '@/routes/print-queue';
@@ -68,7 +69,6 @@ const printer = ref<PrinterDetail | null>(null);
 const loading = ref(true);
 const refreshing = ref(false);
 const lastSyncedAt = ref<string | null>(null);
-let refreshTimer: number | null = null;
 
 const totalTrackedJobs = computed(() => {
     return (
@@ -97,18 +97,15 @@ const loadPrinter = async (silent = false): Promise<void> => {
     }
 };
 
-onMounted(async () => {
-    await loadPrinter();
-
-    refreshTimer = window.setInterval(() => {
-        void loadPrinter(true);
-    }, 20000);
+const polling = useAdaptivePolling(() => loadPrinter(true), {
+    activeIntervalMs: 30_000,
+    idleIntervalMs: 60_000,
+    autoStart: false,
 });
 
-onBeforeUnmount(() => {
-    if (refreshTimer !== null) {
-        window.clearInterval(refreshTimer);
-    }
+onMounted(async () => {
+    await loadPrinter();
+    polling.start();
 });
 </script>
 

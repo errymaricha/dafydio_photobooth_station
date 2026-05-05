@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/print-orders', fn () => Inertia::render('printorders/Index'))->name('print-orders.index');
     Route::get('/print-orders/{id}', fn (string $id) => Inertia::render('printorders/Show', ['printOrderId' => $id]))->name('print-orders.show');
     Route::get('/print-queue', fn () => Inertia::render('printqueue/Index'))->name('print-queue.index');
+    Route::get('/devices', fn () => Inertia::render('devices/Index'))->name('devices.index');
     Route::get('/printers', fn () => Inertia::render('printers/Index'))->name('printers.index');
     Route::get('/printers/{id}', fn (string $id) => Inertia::render('printers/Show', ['printerId' => $id]))->name('printers.show');
     Route::get('/print-logs', fn () => Inertia::render('printlogs/Index'))->name('print-logs.index');

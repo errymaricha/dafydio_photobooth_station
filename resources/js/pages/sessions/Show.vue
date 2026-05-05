@@ -26,6 +26,7 @@ import { index as listTemplates } from '@/actions/App/Http/Controllers/Api/Edito
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 import * as printOrderRoutes from '@/routes/print-orders';
 import * as printQueueRoutes from '@/routes/print-queue';
@@ -113,6 +114,7 @@ type TemplateItem = {
     canvas_width?: number | null;
     canvas_height?: number | null;
     preview_url?: string | null;
+    overlay_url?: string | null;
     slots: TemplateSlot[];
 };
 
@@ -197,6 +199,7 @@ const paperSize = ref('4R');
 const feedback = ref<string | null>(null);
 const errorMessage = ref<string | null>(null);
 const renderedFileUrl = ref<string | null>(null);
+const renderedPreviewCacheKey = ref<string | null>(null);
 const smartFitEnabled = ref(true);
 const smartFitBias = ref(-12);
 const voucherCode = ref('');
@@ -416,6 +419,26 @@ const canCreateAndRender = computed(() => {
 
 const canCreatePrintOrder = computed(() => {
     return !!session.value?.active_rendered_output && !creatingPrintOrder.value;
+});
+
+const renderedFilePreviewUrl = computed(() => {
+    if (!renderedFileUrl.value) {
+        return null;
+    }
+
+    const cacheKey =
+        renderedPreviewCacheKey.value ??
+        session.value?.active_rendered_output?.id ??
+        session.value?.active_rendered_output?.version_no ??
+        null;
+
+    if (!cacheKey) {
+        return renderedFileUrl.value;
+    }
+
+    const separator = renderedFileUrl.value.includes('?') ? '&' : '?';
+
+    return `${renderedFileUrl.value}${separator}v=${encodeURIComponent(String(cacheKey))}`;
 });
 
 const canQueuePrintOrder = computed(() => {
@@ -1468,6 +1491,8 @@ async function loadData(showLoader = true): Promise<void> {
         printers.value = printerData;
         renderedFileUrl.value =
             sessionData.active_rendered_output?.file_url ?? null;
+        renderedPreviewCacheKey.value =
+            sessionData.active_rendered_output?.id ?? null;
         manualPaymentNotes.value = sessionData.manual_payment_notes ?? '';
         manualPaymentRejectReason.value = '';
         lastSyncedAt.value = new Date().toLocaleTimeString('id-ID');
@@ -1504,6 +1529,22 @@ async function refreshWorkspace(): Promise<void> {
     await loadData(false);
     feedback.value = 'Workspace session berhasil diperbarui.';
 }
+
+const polling = useAdaptivePolling(
+    async () => {
+        if (loading.value || refreshing.value) {
+            return;
+        }
+
+        await loadData(false);
+    },
+    {
+        activeIntervalMs: () =>
+            session.value?.status === 'editing' ? 15_000 : 45_000,
+        idleIntervalMs: 90_000,
+        autoStart: false,
+    },
+);
 
 async function refreshLatestPrintOrder(printOrderId: string): Promise<void> {
     const order = await get<PrintOrderDetail>(showPrintOrder(printOrderId));
@@ -1564,6 +1605,8 @@ async function createEditJobAndRender(): Promise<void> {
         }>(renderEditJob(editJobResponse.edit_job_id));
 
         renderedFileUrl.value = renderResponse.file_url ?? null;
+        renderedPreviewCacheKey.value =
+            renderResponse.rendered_output_id ?? editJobResponse.edit_job_id;
 
         session.value.status = renderResponse.status ?? session.value.status;
         session.value.latest_edit_job = {
@@ -1731,7 +1774,10 @@ onBeforeUnmount(() => {
     dragState.value = null;
 });
 
-onMounted(loadData);
+onMounted(async () => {
+    await loadData();
+    polling.start();
+});
 </script>
 
 <template>
@@ -2098,7 +2144,7 @@ onMounted(loadData);
                     </div>
 
                     <img
-                        :src="renderedFileUrl"
+                        :src="renderedFilePreviewUrl ?? renderedFileUrl"
                         alt="rendered output"
                         class="w-full rounded-xl border border-[#e8e6ef] object-cover"
                     />
@@ -2481,6 +2527,13 @@ onMounted(loadData);
                                             :src="selectedTemplate.preview_url"
                                             :alt="selectedTemplate.template_name"
                                             class="absolute inset-0 h-full w-full object-cover opacity-15"
+                                        />
+
+                                        <img
+                                            v-if="selectedTemplate.overlay_url"
+                                            :src="selectedTemplate.overlay_url"
+                                            :alt="`${selectedTemplate.template_name} overlay`"
+                                            class="pointer-events-none absolute inset-0 z-20 h-full w-full object-cover"
                                         />
 
                                         <button

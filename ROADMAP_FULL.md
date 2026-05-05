@@ -136,6 +136,24 @@ Backend complete (~85%)
 - Photobooth Admin:
   - monitoring keseluruhan sistem.
 
+## MiniPC Integration Note
+- Station is ready as a MiniPC proof-of-concept base, but not final for production-grade MiniPC deployment.
+- Future device roles should be explicit:
+  - `android`: Android capture client.
+  - `minipc_kiosk`: fullscreen MiniPC booth/capture app.
+  - `print_agent`: background MiniPC printer service.
+- Optional future role:
+  - `camera_station`: dedicated DSLR/hot-folder camera controller, only if camera capture is separated from kiosk UI.
+- Development priorities:
+  - add `device_type`, device capabilities/config, app/OS version, richer heartbeat, and last sync fields;
+  - add MiniPC pairing/install flow;
+  - add station-driven MiniPC config endpoint;
+  - separate Sanctum token abilities for capture/kiosk/print-agent roles;
+  - add offline queue + sync recovery;
+  - add ops health dashboard for MiniPC status, disk, camera, printer, version, and recent errors.
+- Recommended MiniPC app approach:
+  - start with Electron Windows installer for kiosk/fullscreen use, local file access, printer/camera integration, and auto-start on boot.
+
 ## Forward Ideas (Futuristic but Feasible)
 - Smart template fit (auto crop/zoom).
 - Dynamic template layer (event, lokasi, QR, sponsor).
@@ -145,6 +163,11 @@ Backend complete (~85%)
 - Session highlight reel.
 - Voucher smart rules.
 - Cloud archive + re-order print.
+- Template/frame analytics:
+  - ranking template populer,
+  - low-usage/unused template detection,
+  - trend 30 hari, 90 hari, 6 bulan, dan 12 bulan,
+  - rekomendasi template untuk dipertahankan, diganti desain, dipromosikan, atau dinonaktifkan.
 
 ## Dynamic Layer v1 (Done)
 - Text layer rendering on final output.
@@ -280,3 +303,17 @@ Production-ready scalable system
   - Pilot checklist lolos.
   - Bug high/critical terselesaikan.
   - Go/No-Go production decision siap.
+
+### Week 9 - Template Analytics & Frame Lifecycle
+- Scope:
+  - Tambah tab/page `Templates > Analytics`.
+  - Hitung penggunaan template berdasarkan session selesai/paid/ready_print/printed.
+  - Filter periode: 30 hari, 90 hari default, 6 bulan, 12 bulan, dan custom range.
+  - Tampilkan ranking top template, low usage, unused, dan stale/trending down.
+  - Tambah rekomendasi status template: `Hot`, `Stable`, `Cold`, `Unused`, `Stale`.
+  - Tambah action cepat: view, edit, duplicate/redesign candidate, dan deactivate template.
+- Definition of Done:
+  - Owner bisa melihat template populer dan tidak populer dari data session nyata.
+  - Template dengan 0 usage dalam 90 hari mudah ditemukan.
+  - Penurunan pemakaian dibanding periode sebelumnya bisa terlihat.
+  - Deactivate template dari analytics tetap aman dan tidak menghapus data historis.

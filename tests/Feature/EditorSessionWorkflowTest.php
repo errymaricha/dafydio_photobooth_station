@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AndroidDevice;
 use App\Models\AssetFile;
+use App\Models\EditJob;
 use App\Models\EditJobItem;
 use App\Models\PhotoSession;
 use App\Models\Printer;
@@ -364,6 +365,62 @@ class EditorSessionWorkflowTest extends TestCase
             ->assertJsonPath('latest_print_order.printer.id', $printer->id)
             ->assertJsonPath('latest_print_order.status', 'created')
             ->assertJsonPath('latest_print_order.total_qty', 2);
+    }
+
+    public function test_editor_session_index_uses_rendered_output_when_photo_thumbnail_is_missing(): void
+    {
+        $editor = $this->createEditorUser();
+        $session = $this->createSessionWithPhotos(photoCount: 1, storageDisk: 'public');
+        $template = $this->createTemplate(slotCount: 1, createdBy: $editor);
+
+        $session->photos()->update(['thumbnail_file_id' => null]);
+
+        $renderPath = "tests/session-{$session->id}-rendered.png";
+        Storage::disk('public')->put($renderPath, $this->tinyPng());
+
+        $renderedFile = AssetFile::create([
+            'storage_disk' => 'public',
+            'file_path' => $renderPath,
+            'file_name' => basename($renderPath),
+            'file_ext' => 'png',
+            'mime_type' => 'image/png',
+            'file_size_bytes' => strlen($this->tinyPng()),
+            'width' => 10,
+            'height' => 10,
+            'file_category' => 'rendered',
+            'created_by_type' => 'system',
+        ]);
+
+        $editJob = EditJob::create([
+            'session_id' => $session->id,
+            'editor_id' => $editor->id,
+            'template_id' => $template->id,
+            'version_no' => 1,
+            'status' => 'completed',
+            'started_at' => now(),
+            'completed_at' => now(),
+        ]);
+
+        RenderedOutput::create([
+            'session_id' => $session->id,
+            'edit_job_id' => $editJob->id,
+            'file_id' => $renderedFile->id,
+            'version_no' => 1,
+            'render_type' => 'final_print',
+            'width' => 10,
+            'height' => 10,
+            'dpi' => 300,
+            'is_active' => true,
+            'rendered_at' => now(),
+        ]);
+
+        Sanctum::actingAs($editor);
+
+        $this->getJson('/api/editor/sessions')
+            ->assertOk()
+            ->assertJsonPath('0.id', $session->id)
+            ->assertJsonPath('0.thumbnail', $renderPath)
+            ->assertJsonPath('0.thumbnail_url', url('storage/'.$renderPath));
     }
 
     protected function createEditorUser(): User

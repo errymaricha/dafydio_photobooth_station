@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTemplateRequest extends FormRequest
 {
@@ -15,9 +16,16 @@ class UpdateTemplateRequest extends FormRequest
     {
         return [
             'template_name' => ['sometimes', 'string', 'max:100'],
-            'template_code' => ['sometimes', 'string', 'max:50'],
+            'template_code' => [
+                'sometimes',
+                'string',
+                'max:50',
+                Rule::unique('templates', 'template_code')->ignore($this->route('template')),
+            ],
             'category' => ['sometimes', 'nullable', 'string', 'max:50'],
             'paper_size' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'canvas_width' => ['sometimes', 'integer', 'min:1'],
+            'canvas_height' => ['sometimes', 'integer', 'min:1'],
             'preview_url' => ['sometimes', 'nullable', 'string'],
             'status' => ['sometimes', 'string', 'in:active,archived'],
             'reason' => ['sometimes', 'nullable', 'string', 'max:255'],

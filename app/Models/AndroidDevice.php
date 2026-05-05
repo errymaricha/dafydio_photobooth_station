@@ -10,21 +10,27 @@ use Laravel\Sanctum\HasApiTokens;
 
 class AndroidDevice extends Authenticatable
 {
-    use HasUuids, HasApiTokens;
+    use HasApiTokens, HasUuids;
 
     public $incrementing = false;
+
     protected $keyType = 'string';
 
     protected $fillable = [
         'station_id',
         'device_code',
         'device_name',
+        'device_type',
         'api_key_hash',
         'local_ip',
         'app_version',
+        'os_name',
         'os_version',
         'last_heartbeat_at',
+        'last_sync_at',
         'battery_percent',
+        'capabilities_json',
+        'config_json',
         'status',
     ];
 
@@ -36,6 +42,9 @@ class AndroidDevice extends Authenticatable
     {
         return [
             'last_heartbeat_at' => 'datetime',
+            'last_sync_at' => 'datetime',
+            'capabilities_json' => 'array',
+            'config_json' => 'array',
         ];
     }
 

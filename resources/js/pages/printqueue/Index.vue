@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import {
     indexJobs as printQueueJobsIndex,
@@ -9,6 +9,7 @@ import {
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 
 type QueueJob = {
@@ -43,7 +44,6 @@ const refreshing = ref(false);
 const filter = ref('all');
 const search = ref('');
 const lastSyncedAt = ref<string | null>(null);
-let refreshTimer: number | null = null;
 
 const filterOptions = [
     { key: 'all', label: 'All' },
@@ -116,18 +116,18 @@ const retryJob = async (jobId: number | string): Promise<void> => {
     await loadData(true);
 };
 
-onMounted(async () => {
-    await loadData();
-
-    refreshTimer = window.setInterval(() => {
-        void loadData(true);
-    }, 15000);
+const polling = useAdaptivePolling(() => loadData(true), {
+    activeIntervalMs: () =>
+        (summary.value.pending ?? 0) + (summary.value.processing ?? 0) > 0
+            ? 10_000
+            : 30_000,
+    idleIntervalMs: 60_000,
+    autoStart: false,
 });
 
-onBeforeUnmount(() => {
-    if (refreshTimer !== null) {
-        window.clearInterval(refreshTimer);
-    }
+onMounted(async () => {
+    await loadData();
+    polling.start();
 });
 </script>
 

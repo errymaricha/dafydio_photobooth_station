@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import * as sessionApi from '@/actions/App/Http/Controllers/Api/Editor/SessionController';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 import * as sessionRoutes from '@/routes/sessions';
 
@@ -29,7 +30,6 @@ const refreshing = ref(false);
 const search = ref('');
 const status = ref('all');
 const lastSyncedAt = ref<string | null>(null);
-let refreshTimer: number | null = null;
 
 const statusOptions = [
     'uploaded',
@@ -108,18 +108,15 @@ const loadSessions = async (silent = false): Promise<void> => {
     }
 };
 
-onMounted(async () => {
-    await loadSessions();
-
-    refreshTimer = window.setInterval(() => {
-        void loadSessions(true);
-    }, 30000);
+const polling = useAdaptivePolling(() => loadSessions(true), {
+    activeIntervalMs: 60_000,
+    idleIntervalMs: 120_000,
+    autoStart: false,
 });
 
-onBeforeUnmount(() => {
-    if (refreshTimer !== null) {
-        window.clearInterval(refreshTimer);
-    }
+onMounted(async () => {
+    await loadSessions();
+    polling.start();
 });
 </script>
 

@@ -12,20 +12,13 @@ class PrinterController extends Controller
     public function index(Request $request)
     {
         $printers = Printer::with('station')
+            ->withCount([
+                'queueJobs as pending_queue_jobs_count' => fn ($query) => $query->where('status', 'pending'),
+                'queueJobs as processing_queue_jobs_count' => fn ($query) => $query->where('status', 'processing'),
+                'queueJobs as failed_queue_jobs_count' => fn ($query) => $query->where('status', 'failed'),
+            ])
             ->get()
             ->map(function ($printer) {
-                $pendingCount = PrintQueueJob::where('printer_id', $printer->id)
-                    ->where('status', 'pending')
-                    ->count();
-
-                $processingCount = PrintQueueJob::where('printer_id', $printer->id)
-                    ->where('status', 'processing')
-                    ->count();
-
-                $failedCount = PrintQueueJob::where('printer_id', $printer->id)
-                    ->where('status', 'failed')
-                    ->count();
-
                 $isOnline = $printer->last_seen_at
                     ? $printer->last_seen_at->gt(now()->subMinutes(2))
                     : false;
@@ -54,9 +47,9 @@ class PrinterController extends Controller
                     ],
 
                     'queue' => [
-                        'pending' => $pendingCount,
-                        'processing' => $processingCount,
-                        'failed' => $failedCount,
+                        'pending' => (int) $printer->pending_queue_jobs_count,
+                        'processing' => (int) $printer->processing_queue_jobs_count,
+                        'failed' => (int) $printer->failed_queue_jobs_count,
                     ],
                 ];
             })

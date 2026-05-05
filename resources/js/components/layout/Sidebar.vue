@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { dashboard } from '@/routes';
+import { dashboard } from '@/lib/stationRoutes';
 import * as clients from '@/routes/clients';
 import * as pricing from '@/routes/pricing';
 import * as printLogs from '@/routes/print-logs';

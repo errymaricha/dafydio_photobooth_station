@@ -176,6 +176,25 @@ Full system photobooth:
 - Photobooth Admin (Control Plane):
   - Memantau keseluruhan sistem, session, print queue, printer status, dan log.
 
+## MiniPC Development Note
+- Current station foundation is ready for MiniPC proof-of-concept, but not final for production-grade MiniPC deployment.
+- Keep Android support, but evolve the generic device model so the station can distinguish hardware role/capability instead of assuming every capture client is Android.
+- Recommended future `device_type` values:
+  - `android`: Android capture client for template selection, voucher/payment check, photo capture, upload, and session completion.
+  - `minipc_kiosk`: MiniPC booth app, ideally Electron-based, running fullscreen/kiosk mode for template selection, countdown, capture, preview, upload, render, and optional auto-print.
+  - `print_agent`: background MiniPC/Windows service that detects printers, claims print jobs, sends files to printer, reports heartbeat/status, and handles retry/failure.
+- Defer `camera_station` unless DSLR/hot-folder capture is split from the booth UI. If needed later, use it for a dedicated camera controller that watches a local folder or camera tether and uploads photos into an active session.
+- Recommended implementation path:
+  - Add `device_type`, `capabilities_json`, `config_json`, `app_version`, `os_name`, `os_version`, `last_sync_at`, and richer heartbeat data to device records.
+  - Add MiniPC config + heartbeat endpoints so station can return default template, capture mode, storage path, printer binding, auto-print settings, and feature flags.
+  - Add pairing/install flow: operator installs MiniPC app, enters Station URL + pairing/device code, station binds the app to a device record.
+  - Split token abilities/scopes by role: capture device, kiosk device, print agent.
+  - Add local offline queue and sync events for MiniPC so capture/print can recover after network interruption.
+  - Add ops visibility for MiniPC app version, health, disk space, camera status, printer status, last heartbeat, last sync, and recent errors.
+- Recommended app packaging:
+  - Start with Electron for Windows MiniPC because it supports installer-style distribution, fullscreen kiosk mode, local file access, printer/camera integration, and auto-start on boot.
+  - Keep Tauri/PWA as later alternatives only if app size or deployment model becomes a stronger concern.
+
 ## Forward Ideas (Futuristic but Feasible)
 - Smart template fit (auto crop/zoom agar wajah selalu pas di slot).
 - Dynamic template layer (nama acara, waktu, lokasi, QR, sponsor branding).

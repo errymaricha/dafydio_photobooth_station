@@ -22,13 +22,15 @@ class SessionController extends Controller
         $sessions = PhotoSession::with([
             'station',
             'device',
+            'renderedOutputs.file',
+            'photos.originalFile',
             'photos.thumbnailFile',
         ])
             ->latest()
             ->limit(20)
             ->get()
             ->map(function ($session) {
-                $thumbnailFile = $session->photos->first()?->thumbnailFile;
+                $thumbnailFile = $this->sessionPreviewAsset($session);
 
                 return [
                     'id' => $session->id,
@@ -300,6 +302,31 @@ class SessionController extends Controller
         }
 
         return url('storage/'.ltrim($assetFile->file_path, '/'));
+    }
+
+    protected function sessionPreviewAsset(PhotoSession $session): ?AssetFile
+    {
+        $photoThumbnail = $session->photos
+            ->first(fn (SessionPhoto $photo): bool => $photo->thumbnailFile !== null)
+            ?->thumbnailFile;
+
+        if ($photoThumbnail) {
+            return $photoThumbnail;
+        }
+
+        $renderedFile = $session->renderedOutputs
+            ->where('is_active', true)
+            ->sortByDesc('version_no')
+            ->first()
+            ?->file;
+
+        if ($renderedFile) {
+            return $renderedFile;
+        }
+
+        return $session->photos
+            ->first(fn (SessionPhoto $photo): bool => $photo->originalFile !== null)
+            ?->originalFile;
     }
 
     protected function pickLargestFace($faces): ?array

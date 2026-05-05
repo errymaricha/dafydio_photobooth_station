@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import { index as listPrintLogs } from '@/actions/App/Http/Controllers/Api/Editor/PrintLogController';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 import * as printOrderRoutes from '@/routes/print-orders';
 import * as sessionsRoutes from '@/routes/sessions';
@@ -42,7 +43,6 @@ const refreshing = ref(false);
 const level = ref('all');
 const search = ref('');
 const lastSyncedAt = ref<string | null>(null);
-let refreshTimer: number | null = null;
 
 const levelOptions = [
     { key: 'all', label: 'All' },
@@ -99,18 +99,15 @@ const loadLogs = async (silent = false): Promise<void> => {
     }
 };
 
-onMounted(async () => {
-    await loadLogs();
-
-    refreshTimer = window.setInterval(() => {
-        void loadLogs(true);
-    }, 20000);
+const polling = useAdaptivePolling(() => loadLogs(true), {
+    activeIntervalMs: 60_000,
+    idleIntervalMs: 120_000,
+    autoStart: false,
 });
 
-onBeforeUnmount(() => {
-    if (refreshTimer !== null) {
-        window.clearInterval(refreshTimer);
-    }
+onMounted(async () => {
+    await loadLogs();
+    polling.start();
 });
 </script>
 

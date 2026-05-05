@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import { index as printOrdersIndex } from '@/actions/App/Http/Controllers/Api/Editor/PrintOrderController';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import StatusBadge from '@/components/ui/StatusBadge.vue';
+import { useAdaptivePolling } from '@/composables/useAdaptivePolling';
 import { useApi } from '@/composables/useApi';
 import * as printOrderRoutes from '@/routes/print-orders';
 
@@ -35,7 +36,6 @@ const refreshing = ref(false);
 const search = ref('');
 const status = ref('all');
 const lastSyncedAt = ref<string | null>(null);
-let refreshTimer: number | null = null;
 
 const statusOptions = [
     { key: 'all', label: 'All' },
@@ -118,18 +118,15 @@ const loadOrders = async (silent = false): Promise<void> => {
     }
 };
 
-onMounted(async () => {
-    await loadOrders();
-
-    refreshTimer = window.setInterval(() => {
-        void loadOrders(true);
-    }, 20000);
+const polling = useAdaptivePolling(() => loadOrders(true), {
+    activeIntervalMs: 30_000,
+    idleIntervalMs: 60_000,
+    autoStart: false,
 });
 
-onBeforeUnmount(() => {
-    if (refreshTimer !== null) {
-        window.clearInterval(refreshTimer);
-    }
+onMounted(async () => {
+    await loadOrders();
+    polling.start();
 });
 </script>
 

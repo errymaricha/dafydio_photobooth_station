@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api\Editor;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreTemplateRequest;
 use App\Http\Requests\StoreTemplateOverlayRequest;
+use App\Http\Requests\StoreTemplateRequest;
 use App\Http\Requests\StoreTemplateSlotRequest;
+use App\Http\Requests\StoreTemplateThumbnailRequest;
 use App\Http\Requests\TemplateQrPreviewRequest;
 use App\Http\Requests\UpdateTemplateRequest;
 use App\Http\Requests\UpdateTemplateSlotsRequest;
@@ -13,13 +14,17 @@ use App\Models\AssetFile;
 use App\Models\Template;
 use App\Models\TemplateAsset;
 use App\Models\TemplateSlot;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Endroid\QrCode\QrCode;
-use Endroid\QrCode\Writer\PngWriter;
-use Endroid\QrCode\Color\Color;
+use Illuminate\Validation\ValidationException;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\PngEncoder;
+use Intervention\Image\ImageManager;
 
 class TemplateController extends Controller
 {
@@ -109,7 +114,7 @@ class TemplateController extends Controller
             $copy = Template::create([
                 'id' => (string) Str::uuid(),
                 'template_code' => $this->generateTemplateCode(),
-                'template_name' => $template->template_name . ' Copy',
+                'template_name' => $template->template_name.' Copy',
                 'category' => $template->category,
                 'paper_size' => $template->paper_size,
                 'canvas_width' => $template->canvas_width,
@@ -220,7 +225,7 @@ class TemplateController extends Controller
     {
         $slot = $template->slots()->where('slot_index', $slotIndex)->first();
 
-        if (!$slot) {
+        if (! $slot) {
             return response()->json([
                 'message' => 'Slot tidak ditemukan.',
             ], 404);
@@ -258,7 +263,7 @@ class TemplateController extends Controller
                 ->each(function ($slot) use ($slotPayload): void {
                     $payload = $slotPayload->get((int) $slot->slot_index);
 
-                    if (!$payload) {
+                    if (! $payload) {
                         return;
                     }
 
@@ -291,7 +296,7 @@ class TemplateController extends Controller
     {
         $file = $request->file('overlay');
 
-        if (!$file) {
+        if (! $file) {
             return response()->json([
                 'message' => 'Overlay file missing.',
             ], 422);
@@ -322,9 +327,24 @@ class TemplateController extends Controller
 
             $datePath = now()->format('Y/m/d');
             $dir = "templates/{$template->id}/overlay/{$datePath}";
-            $fileName = 'overlay_' . substr((string) Str::uuid(), 0, 8) . '.png';
+            $fileName = 'overlay_'.substr((string) Str::uuid(), 0, 8).'.png';
 
-            $storedPath = $file->storeAs($dir, $fileName, 'public');
+            $manager = new ImageManager(new Driver);
+            $image = $manager->read($file->getRealPath());
+
+            $targetWidth = max(1, (int) $template->canvas_width);
+            $targetHeight = max(1, (int) $template->canvas_height);
+            $currentWidth = $image->width();
+            $currentHeight = $image->height();
+
+            if ($currentWidth !== $targetWidth || $currentHeight !== $targetHeight) {
+                $image = $image->resize($targetWidth, $targetHeight);
+            }
+
+            $encodedOverlay = $image->encode(new PngEncoder)->toString();
+            $this->assertAndroidSkiaSafePng($encodedOverlay);
+            $storedPath = "{$dir}/{$fileName}";
+            Storage::disk('public')->put($storedPath, $encodedOverlay);
 
             $assetFile = AssetFile::create([
                 'id' => (string) Str::uuid(),
@@ -332,8 +352,8 @@ class TemplateController extends Controller
                 'file_path' => $storedPath,
                 'file_name' => $fileName,
                 'file_ext' => 'png',
-                'mime_type' => $file->getMimeType(),
-                'file_size_bytes' => $file->getSize(),
+                'mime_type' => 'image/png',
+                'file_size_bytes' => strlen($encodedOverlay),
                 'file_category' => 'template_overlay',
                 'created_by_type' => 'user',
                 'created_by_id' => $editorId,
@@ -362,6 +382,83 @@ class TemplateController extends Controller
         ], 201);
     }
 
+    public function uploadThumbnail(StoreTemplateThumbnailRequest $request, Template $template)
+    {
+        $file = $request->file('thumbnail');
+
+        if (! $file) {
+            return response()->json([
+                'message' => 'Thumbnail file missing.',
+            ], 422);
+        }
+
+        $editorId = $request->user()?->id;
+        $template->load(['assets.file']);
+
+        DB::transaction(function () use ($editorId, $file, $template): void {
+            $existingAssets = $template->assets->filter(
+                fn (TemplateAsset $asset) => $asset->asset_type === 'thumbnail_image',
+            );
+
+            foreach ($existingAssets as $existingAsset) {
+                $fileModel = $existingAsset->file;
+
+                if (
+                    $fileModel
+                    && Storage::disk($fileModel->storage_disk)->exists($fileModel->file_path)
+                ) {
+                    Storage::disk($fileModel->storage_disk)->delete($fileModel->file_path);
+                }
+
+                if ($fileModel) {
+                    $fileModel->delete();
+                }
+            }
+
+            $datePath = now()->format('Y/m/d');
+            $dir = "templates/{$template->id}/thumbnail/{$datePath}";
+            $extension = $file->getClientOriginalExtension() ?: 'png';
+            $extension = strtolower($extension);
+            $fileName = 'thumbnail_'.substr((string) Str::uuid(), 0, 8).".{$extension}";
+
+            $storedPath = $file->storeAs($dir, $fileName, 'public');
+
+            $assetFile = AssetFile::create([
+                'id' => (string) Str::uuid(),
+                'storage_disk' => 'public',
+                'file_path' => $storedPath,
+                'file_name' => $fileName,
+                'file_ext' => $extension,
+                'mime_type' => $file->getMimeType(),
+                'file_size_bytes' => $file->getSize(),
+                'file_category' => 'template_thumbnail',
+                'created_by_type' => 'user',
+                'created_by_id' => $editorId,
+            ]);
+
+            TemplateAsset::create([
+                'id' => (string) Str::uuid(),
+                'template_id' => $template->id,
+                'asset_type' => 'thumbnail_image',
+                'file_id' => $assetFile->id,
+                'sort_order' => 0,
+            ]);
+
+            if ($editorId) {
+                $template->update([
+                    'updated_by' => $editorId,
+                ]);
+            }
+        });
+
+        $template->load(['slots', 'createdBy', 'updatedBy', 'assets.file']);
+
+        return response()->json([
+            'message' => 'Thumbnail uploaded.',
+            ...$this->transformTemplate($template),
+        ], 201);
+    }
+
     public function qrPreview(TemplateQrPreviewRequest $request)
     {
         $validated = $request->validated();
@@ -380,19 +477,19 @@ class TemplateController extends Controller
         $qrCode->setForegroundColor(new Color(0, 0, 0));
         $qrCode->setBackgroundColor(new Color($bgColor['r'], $bgColor['g'], $bgColor['b']));
 
-        $writer = new PngWriter();
+        $writer = new PngWriter;
         $pngData = $writer->write($qrCode)->getString();
 
         if ($padding > 0) {
-            $manager = app(\Intervention\Image\ImageManager::class);
+            $manager = new ImageManager(new Driver);
             $qrCanvas = $manager->read($pngData);
             $wrapper = $manager->create($size, $size)->fill($bgColor['hex']);
             $wrapper->place($qrCanvas, 'top-left', $padding, $padding);
-            $pngData = $wrapper->encode(new \Intervention\Image\Encoders\PngEncoder())->toString();
+            $pngData = $wrapper->encode(new PngEncoder)->toString();
         }
 
         return response()->json([
-            'data_url' => 'data:image/png;base64,' . base64_encode($pngData),
+            'data_url' => 'data:image/png;base64,'.base64_encode($pngData),
         ]);
     }
 
@@ -400,12 +497,19 @@ class TemplateController extends Controller
     {
         $overlayAsset = $template->assets
             ->firstWhere('asset_type', 'overlay_png');
+        $thumbnailAsset = $template->assets
+            ->firstWhere('asset_type', 'thumbnail_image');
 
         $overlayUrl = null;
+        $thumbnailUrl = null;
 
         if ($overlayAsset && $overlayAsset->file) {
             $overlayUrl = Storage::disk($overlayAsset->file->storage_disk)
                 ->url($overlayAsset->file->file_path);
+        }
+        if ($thumbnailAsset && $thumbnailAsset->file) {
+            $thumbnailUrl = Storage::disk($thumbnailAsset->file->storage_disk)
+                ->url($thumbnailAsset->file->file_path);
         }
 
         return [
@@ -416,7 +520,8 @@ class TemplateController extends Controller
             'paper_size' => $template->paper_size,
             'canvas_width' => $template->canvas_width,
             'canvas_height' => $template->canvas_height,
-            'preview_url' => $template->preview_url,
+            'thumbnail_url' => $thumbnailUrl,
+            'preview_url' => $thumbnailUrl ?? $template->preview_url,
             'overlay_url' => $overlayUrl,
             'config' => $template->config_json,
             'status' => $template->status,
@@ -455,7 +560,7 @@ class TemplateController extends Controller
         $hex = ltrim($color, '#');
 
         if (strlen($hex) === 3) {
-            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+            $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
         }
 
         if (strlen($hex) !== 6) {
@@ -471,13 +576,13 @@ class TemplateController extends Controller
             'r' => hexdec(substr($hex, 0, 2)),
             'g' => hexdec(substr($hex, 2, 2)),
             'b' => hexdec(substr($hex, 4, 2)),
-            'hex' => '#' . $hex,
+            'hex' => '#'.$hex,
         ];
     }
 
     protected function generateTemplateCode(): string
     {
-        return 'TPL-' . Str::upper(Str::random(6));
+        return 'TPL-'.Str::upper(Str::random(6));
     }
 
     protected function createDefaultSlot(Template $template, int $slotIndex): TemplateSlot
@@ -504,5 +609,33 @@ class TemplateController extends Controller
             'rotation' => 0,
             'border_radius' => 0,
         ]);
+    }
+
+    private function assertAndroidSkiaSafePng(string $pngBinary): void
+    {
+        if ($pngBinary === '') {
+            throw ValidationException::withMessages([
+                'overlay' => 'Overlay PNG kosong atau gagal di-encode.',
+            ]);
+        }
+
+        $imageInfo = @getimagesizefromstring($pngBinary);
+        if (! is_array($imageInfo) || ($imageInfo['mime'] ?? null) !== 'image/png') {
+            throw ValidationException::withMessages([
+                'overlay' => 'Overlay bukan PNG valid setelah diproses.',
+            ]);
+        }
+
+        if (function_exists('imagecreatefromstring')) {
+            $decoded = @imagecreatefromstring($pngBinary);
+
+            if ($decoded === false) {
+                throw ValidationException::withMessages([
+                    'overlay' => 'Overlay tidak bisa didecode oleh engine PNG standar.',
+                ]);
+            }
+
+            imagedestroy($decoded);
+        }
     }
 }

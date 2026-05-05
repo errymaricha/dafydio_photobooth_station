@@ -7,10 +7,10 @@ use App\Models\Template;
 use App\Models\TemplateSlot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Http\UploadedFile;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -107,6 +107,43 @@ class EditorTemplateManagementTest extends TestCase
         ]);
     }
 
+    public function test_editor_can_update_template_detail_fields(): void
+    {
+        $editor = $this->createEditorUser();
+        $template = $this->createTemplate(slotCount: 1, createdBy: $editor);
+
+        Sanctum::actingAs($editor);
+
+        $response = $this->patchJson("/api/editor/templates/{$template->id}", [
+            'template_name' => 'Template Detail Baru',
+            'template_code' => 'TPL-DETAIL-BARU',
+            'category' => 'wedding',
+            'paper_size' => '6R',
+            'canvas_width' => 1800,
+            'canvas_height' => 1200,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('template_name', 'Template Detail Baru')
+            ->assertJsonPath('template_code', 'TPL-DETAIL-BARU')
+            ->assertJsonPath('category', 'wedding')
+            ->assertJsonPath('paper_size', '6R')
+            ->assertJsonPath('canvas_width', 1800)
+            ->assertJsonPath('canvas_height', 1200)
+            ->assertJsonPath('updated_by.id', $editor->id);
+
+        $this->assertDatabaseHas('templates', [
+            'id' => $template->id,
+            'template_name' => 'Template Detail Baru',
+            'template_code' => 'TPL-DETAIL-BARU',
+            'category' => 'wedding',
+            'paper_size' => '6R',
+            'canvas_width' => 1800,
+            'canvas_height' => 1200,
+            'updated_by' => $editor->id,
+        ]);
+    }
+
     public function test_editor_can_duplicate_template(): void
     {
         $editor = $this->createEditorUser();
@@ -117,7 +154,7 @@ class EditorTemplateManagementTest extends TestCase
         $response = $this->postJson("/api/editor/templates/{$template->id}/duplicate");
 
         $response->assertCreated()
-            ->assertJsonPath('template_name', $template->template_name . ' Copy')
+            ->assertJsonPath('template_name', $template->template_name.' Copy')
             ->assertJsonCount(2, 'slots')
             ->assertJsonPath('created_by.id', $editor->id);
 
@@ -173,7 +210,7 @@ class EditorTemplateManagementTest extends TestCase
         Sanctum::actingAs($editor);
 
         $response = $this->post("/api/editor/templates/{$template->id}/overlay", [
-            'overlay' => UploadedFile::fake()->image('overlay.png', 1200, 1800),
+            'overlay' => UploadedFile::fake()->image('overlay.png', 3750, 5624),
         ]);
 
         $response->assertCreated()
@@ -188,11 +225,57 @@ class EditorTemplateManagementTest extends TestCase
 
         $this->assertNotNull($asset);
         Storage::disk('public')->assertExists($asset->file_path);
+        $this->assertSame('image/png', $asset->mime_type);
+
+        $overlayBinary = Storage::disk('public')->get($asset->file_path);
+        $overlayImageSize = getimagesizefromstring($overlayBinary);
+
+        $this->assertNotFalse($overlayImageSize);
+        $this->assertSame(1200, $overlayImageSize[0]);
+        $this->assertSame(1800, $overlayImageSize[1]);
+
+        $decodedOverlay = imagecreatefromstring($overlayBinary);
+        $this->assertNotFalse($decodedOverlay);
+        imagedestroy($decodedOverlay);
 
         $this->assertDatabaseHas('template_assets', [
             'template_id' => $template->id,
             'file_id' => $asset->id,
             'asset_type' => 'overlay_png',
+        ]);
+    }
+
+    public function test_editor_can_upload_thumbnail_template_and_use_it_as_preview(): void
+    {
+        Storage::fake('public');
+
+        $editor = $this->createEditorUser();
+        $template = $this->createTemplate(slotCount: 1, createdBy: $editor);
+
+        Sanctum::actingAs($editor);
+
+        $response = $this->post("/api/editor/templates/{$template->id}/thumbnail", [
+            'thumbnail' => UploadedFile::fake()->image('thumbnail.jpg', 800, 1200),
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('message', 'Thumbnail uploaded.')
+            ->assertJsonPath('id', $template->id)
+            ->assertJsonPath('thumbnail_url', fn ($value) => is_string($value) && $value !== '')
+            ->assertJsonPath('preview_url', fn ($value) => is_string($value) && $value !== '');
+
+        $asset = DB::table('asset_files')
+            ->where('file_category', 'template_thumbnail')
+            ->latest('created_at')
+            ->first();
+
+        $this->assertNotNull($asset);
+        Storage::disk('public')->assertExists($asset->file_path);
+
+        $this->assertDatabaseHas('template_assets', [
+            'template_id' => $template->id,
+            'file_id' => $asset->id,
+            'asset_type' => 'thumbnail_image',
         ]);
     }
 
@@ -259,8 +342,8 @@ class EditorTemplateManagementTest extends TestCase
     protected function createTemplate(int $slotCount, User $createdBy): Template
     {
         $template = Template::create([
-            'template_code' => 'TPL-' . Str::upper(Str::random(6)),
-            'template_name' => 'Template ' . Str::upper(Str::random(4)),
+            'template_code' => 'TPL-'.Str::upper(Str::random(6)),
+            'template_name' => 'Template '.Str::upper(Str::random(4)),
             'category' => 'photostrip',
             'paper_size' => '4R',
             'canvas_width' => 1200,

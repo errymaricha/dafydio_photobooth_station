@@ -8,6 +8,7 @@ import {
     destroySlot as destroyTemplateSlot,
     show as showTemplate,
     uploadOverlay as uploadTemplateOverlay,
+    uploadThumbnail as uploadTemplateThumbnail,
     qrPreview as qrPreviewTemplate,
     storeSlot as storeTemplateSlot,
     update as updateTemplate,
@@ -49,6 +50,7 @@ type TemplateDetail = {
     canvas_width?: number | null;
     canvas_height?: number | null;
     preview_url?: string | null;
+    thumbnail_url?: string | null;
     overlay_url?: string | null;
     config?: Record<string, unknown> | null;
     status?: string | null;
@@ -56,6 +58,15 @@ type TemplateDetail = {
     created_by?: { id: string; name: string } | null;
     updated_by?: { id: string; name: string } | null;
     slots: TemplateSlot[];
+};
+
+type TemplateDetailDraft = {
+    template_name: string;
+    template_code: string;
+    category: string;
+    paper_size: string;
+    canvas_width: number;
+    canvas_height: number;
 };
 
 type DynamicLayer = {
@@ -91,6 +102,7 @@ const savingLayout = ref(false);
 const savingSlot = ref(false);
 const savingTemplate = ref(false);
 const uploadingOverlay = ref(false);
+const uploadingThumbnail = ref(false);
 const savingLayers = ref(false);
 const selectedSlotIndex = ref<number | null>(null);
 const activeTemplateId = ref<string | null>(null);
@@ -99,8 +111,15 @@ const layoutFeedback = ref<string | null>(null);
 const layoutError = ref<string | null>(null);
 const templateFeedback = ref<string | null>(null);
 const templateError = ref<string | null>(null);
-const isEditingName = ref(false);
-const nameDraft = ref('');
+const isEditingDetails = ref(false);
+const detailDraft = ref<TemplateDetailDraft>({
+    template_name: '',
+    template_code: '',
+    category: '',
+    paper_size: '',
+    canvas_width: 1200,
+    canvas_height: 1800,
+});
 const deleteConfirmName = ref('');
 const deleteReason = ref('');
 const showDeletePanel = ref(false);
@@ -172,12 +191,7 @@ const isActiveTemplate = computed(() => {
 });
 
 const overlayImageUrl = computed(() => {
-    return (
-        customOverlayUrl.value ??
-        template.value?.overlay_url ??
-        template.value?.preview_url ??
-        null
-    );
+    return customOverlayUrl.value ?? template.value?.overlay_url ?? null;
 });
 
 const dynamicLayerPreview = computed(() => {
@@ -247,7 +261,10 @@ function normalizeSlotDraft(slot: TemplateSlot): EditableTemplateSlot {
 function clampSlotDraft(slot: EditableTemplateSlot): EditableTemplateSlot {
     const canvas = getCanvasSize();
     const width = Math.max(1, Math.min(Math.round(slot.width), canvas.width));
-    const height = Math.max(1, Math.min(Math.round(slot.height), canvas.height));
+    const height = Math.max(
+        1,
+        Math.min(Math.round(slot.height), canvas.height),
+    );
 
     return {
         ...slot,
@@ -272,9 +289,10 @@ function createLayerId(): string {
 
 function initializeDynamicLayers(): void {
     const config = template.value?.config ?? {};
-    const layers = (config as { dynamic_layers?: DynamicLayer[] }).dynamic_layers;
+    const layers = (config as { dynamic_layers?: DynamicLayer[] })
+        .dynamic_layers;
 
-              dynamicLayers.value = Array.isArray(layers)
+    dynamicLayers.value = Array.isArray(layers)
         ? layers.map((layer) => ({
               id: layer.id ?? createLayerId(),
               type: layer.type,
@@ -338,7 +356,9 @@ function addQrLayer(): void {
 }
 
 function removeLayer(layerId: string): void {
-    dynamicLayers.value = dynamicLayers.value.filter((layer) => layer.id !== layerId);
+    dynamicLayers.value = dynamicLayers.value.filter(
+        (layer) => layer.id !== layerId,
+    );
 }
 
 function insertLayerToken(layer: DynamicLayer, token: string): void {
@@ -469,9 +489,15 @@ function updateSlotDraft(
         if (aspectRatio) {
             if (patch.width !== undefined && patch.height === undefined) {
                 nextSlot.height = Math.round(nextSlot.width / aspectRatio);
-            } else if (patch.height !== undefined && patch.width === undefined) {
+            } else if (
+                patch.height !== undefined &&
+                patch.width === undefined
+            ) {
                 nextSlot.width = Math.round(nextSlot.height * aspectRatio);
-            } else if (patch.width !== undefined && patch.height !== undefined) {
+            } else if (
+                patch.width !== undefined &&
+                patch.height !== undefined
+            ) {
                 nextSlot.height = Math.round(nextSlot.width / aspectRatio);
             }
         }
@@ -728,13 +754,19 @@ function moveSlotDrag(event: PointerEvent): void {
     updateSlotDraft(layoutDragState.value.slotIndex, {
         x: clampSlotValue(
             layoutDragState.value.startX +
-                Math.round((deltaX / layoutDragState.value.canvasWidthPx) * canvas.width),
+                Math.round(
+                    (deltaX / layoutDragState.value.canvasWidthPx) *
+                        canvas.width,
+                ),
             0,
             canvas.width - slot.width,
         ),
         y: clampSlotValue(
             layoutDragState.value.startY +
-                Math.round((deltaY / layoutDragState.value.canvasHeightPx) * canvas.height),
+                Math.round(
+                    (deltaY / layoutDragState.value.canvasHeightPx) *
+                        canvas.height,
+                ),
             0,
             canvas.height - slot.height,
         ),
@@ -777,12 +809,27 @@ function normalizeApiError(error: unknown, fallbackMessage: string): string {
     return firstError ?? fallbackMessage;
 }
 
-async function saveTemplateName(): Promise<void> {
+function syncTemplateDetailDraft(): void {
     if (!template.value) {
         return;
     }
 
-    const trimmedName = nameDraft.value.trim();
+    detailDraft.value = {
+        template_name: template.value.template_name,
+        template_code: template.value.template_code ?? '',
+        category: template.value.category ?? '',
+        paper_size: template.value.paper_size ?? '',
+        canvas_width: template.value.canvas_width ?? 1200,
+        canvas_height: template.value.canvas_height ?? 1800,
+    };
+}
+
+async function saveTemplateDetails(): Promise<void> {
+    if (!template.value) {
+        return;
+    }
+
+    const trimmedName = detailDraft.value.template_name.trim();
 
     if (!trimmedName) {
         templateError.value = 'Nama template tidak boleh kosong.';
@@ -798,35 +845,43 @@ async function saveTemplateName(): Promise<void> {
             updateTemplate(template.value.id),
             {
                 template_name: trimmedName,
+                ...(detailDraft.value.template_code.trim()
+                    ? { template_code: detailDraft.value.template_code.trim() }
+                    : {}),
+                category: detailDraft.value.category.trim() || null,
+                paper_size: detailDraft.value.paper_size.trim() || null,
+                canvas_width: Number(detailDraft.value.canvas_width),
+                canvas_height: Number(detailDraft.value.canvas_height),
             },
         );
 
         template.value = updated;
-        nameDraft.value = updated.template_name;
-        isEditingName.value = false;
-        templateFeedback.value = 'Nama template berhasil diperbarui.';
+        syncTemplateDetailDraft();
+        syncSlotDrafts();
+        isEditingDetails.value = false;
+        templateFeedback.value = 'Detail template berhasil diperbarui.';
     } catch (error: unknown) {
         templateError.value = normalizeApiError(
             error,
-            'Gagal memperbarui nama template.',
+            'Gagal memperbarui detail template.',
         );
     } finally {
         savingTemplate.value = false;
     }
 }
 
-function startNameEdit(): void {
+function startDetailsEdit(): void {
     if (!template.value) {
         return;
     }
 
-    nameDraft.value = template.value.template_name;
-    isEditingName.value = true;
+    syncTemplateDetailDraft();
+    isEditingDetails.value = true;
 }
 
-function cancelNameEdit(): void {
-    isEditingName.value = false;
-    nameDraft.value = template.value?.template_name ?? '';
+function cancelDetailsEdit(): void {
+    isEditingDetails.value = false;
+    syncTemplateDetailDraft();
 }
 
 async function toggleArchive(): Promise<void> {
@@ -982,10 +1037,7 @@ async function addTemplateSlot(): Promise<void> {
             sortedSlots.value[sortedSlots.value.length - 1]?.slot_index ?? null;
         layoutFeedback.value = 'Slot baru ditambahkan.';
     } catch (error: unknown) {
-        layoutError.value = normalizeApiError(
-            error,
-            'Gagal menambah slot.',
-        );
+        layoutError.value = normalizeApiError(error, 'Gagal menambah slot.');
     } finally {
         savingSlot.value = false;
     }
@@ -1016,16 +1068,15 @@ async function removeSelectedSlot(): Promise<void> {
         syncSlotDrafts();
         layoutFeedback.value = 'Slot berhasil dihapus.';
     } catch (error: unknown) {
-        layoutError.value = normalizeApiError(
-            error,
-            'Gagal menghapus slot.',
-        );
+        layoutError.value = normalizeApiError(error, 'Gagal menghapus slot.');
     } finally {
         savingSlot.value = false;
     }
 }
 
-function getSlotPreviewStyle(slot: EditableTemplateSlot): Record<string, string> {
+function getSlotPreviewStyle(
+    slot: EditableTemplateSlot,
+): Record<string, string> {
     const canvasWidth = Math.max(template.value?.canvas_width ?? 1, 1);
     const canvasHeight = Math.max(template.value?.canvas_height ?? 1, 1);
 
@@ -1055,13 +1106,15 @@ function getLayerStyle(layer: DynamicLayer): Record<string, string> {
         opacity: layer.opacity ? `${layer.opacity / 100}` : '1',
         textAlign: layer.align ?? 'left',
         backgroundColor: layer.bg_color ?? 'transparent',
-        padding: layer.padding ? `${layer.padding}px` : undefined,
+        padding: layer.padding ? `${layer.padding}px` : '0px',
     };
 }
 
 function startLayerDrag(layer: DynamicLayer, event: PointerEvent): void {
     const target = event.currentTarget as HTMLElement | null;
-    const canvas = target?.closest('[data-template-canvas]') as HTMLElement | null;
+    const canvas = target?.closest(
+        '[data-template-canvas]',
+    ) as HTMLElement | null;
 
     if (!target || !canvas) {
         return;
@@ -1109,13 +1162,17 @@ function moveLayerDrag(event: PointerEvent): void {
 
     layer.x = clampSlotValue(
         layerDragState.value.startX +
-            Math.round((deltaX / layerDragState.value.canvasWidthPx) * canvas.width),
+            Math.round(
+                (deltaX / layerDragState.value.canvasWidthPx) * canvas.width,
+            ),
         0,
         maxX,
     );
     layer.y = clampSlotValue(
         layerDragState.value.startY +
-            Math.round((deltaY / layerDragState.value.canvasHeightPx) * canvas.height),
+            Math.round(
+                (deltaY / layerDragState.value.canvasHeightPx) * canvas.height,
+            ),
         0,
         maxY,
     );
@@ -1175,8 +1232,7 @@ function syncActiveTemplateIndicator(): void {
         'template_id',
     );
     activeTemplateId.value =
-        urlTemplateId ??
-        window.localStorage.getItem(TEMPLATE_PREFERENCE_KEY);
+        urlTemplateId ?? window.localStorage.getItem(TEMPLATE_PREFERENCE_KEY);
 }
 
 function setSlotPhotoFile(slotIndex: number, file: File): void {
@@ -1198,10 +1254,7 @@ function setSlotPhotoFile(slotIndex: number, file: File): void {
     };
 }
 
-function onSlotPhotoSelected(
-    slotIndex: number,
-    event: Event,
-): void {
+function onSlotPhotoSelected(slotIndex: number, event: Event): void {
     const input = event.target as HTMLInputElement | null;
     const file = input?.files?.[0];
 
@@ -1243,7 +1296,10 @@ async function setCustomOverlayFile(event: Event): Promise<void> {
         input.value = '';
     }
 
-    if (customOverlayUrl.value && generatedObjectUrls.has(customOverlayUrl.value)) {
+    if (
+        customOverlayUrl.value &&
+        generatedObjectUrls.has(customOverlayUrl.value)
+    ) {
         URL.revokeObjectURL(customOverlayUrl.value);
         generatedObjectUrls.delete(customOverlayUrl.value);
     }
@@ -1283,8 +1339,52 @@ async function setCustomOverlayFile(event: Event): Promise<void> {
     }
 }
 
+async function setTemplateThumbnailFile(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.[0];
+
+    if (!file || !file.type.startsWith('image/')) {
+        return;
+    }
+
+    if (input) {
+        input.value = '';
+    }
+
+    if (!template.value) {
+        return;
+    }
+
+    templateFeedback.value = null;
+    templateError.value = null;
+    uploadingThumbnail.value = true;
+
+    try {
+        const formData = new FormData();
+        formData.append('thumbnail', file);
+
+        const updatedTemplate = await post<TemplateDetail>(
+            uploadTemplateThumbnail(template.value.id),
+            formData,
+        );
+
+        template.value = updatedTemplate;
+        templateFeedback.value = 'Thumbnail template berhasil disimpan.';
+    } catch (error: unknown) {
+        templateError.value = normalizeApiError(
+            error,
+            'Gagal menyimpan thumbnail template.',
+        );
+    } finally {
+        uploadingThumbnail.value = false;
+    }
+}
+
 function clearCustomOverlay(): void {
-    if (customOverlayUrl.value && generatedObjectUrls.has(customOverlayUrl.value)) {
+    if (
+        customOverlayUrl.value &&
+        generatedObjectUrls.has(customOverlayUrl.value)
+    ) {
         URL.revokeObjectURL(customOverlayUrl.value);
         generatedObjectUrls.delete(customOverlayUrl.value);
     }
@@ -1339,8 +1439,10 @@ watch(
 
 onMounted(async () => {
     try {
-        template.value = await get<TemplateDetail>(showTemplate(props.templateId));
-        nameDraft.value = template.value.template_name;
+        template.value = await get<TemplateDetail>(
+            showTemplate(props.templateId),
+        );
+        syncTemplateDetailDraft();
         syncSlotDrafts();
         initializeDynamicLayers();
         syncActiveTemplateIndicator();
@@ -1374,57 +1476,139 @@ onBeforeUnmount(() => {
         </div>
 
         <div v-else class="space-y-6">
-            <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div
+                class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
+            >
+                <div
+                    class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+                >
                     <div class="space-y-2">
                         <div class="flex flex-wrap items-center gap-3">
-                            <div v-if="!isEditingName" class="flex items-center gap-2">
-                                <h2 class="text-2xl font-semibold text-[#2f2b3dcc]">
+                            <div
+                                v-if="!isEditingDetails"
+                                class="flex items-center gap-2"
+                            >
+                                <h2
+                                    class="text-2xl font-semibold text-[#2f2b3dcc]"
+                                >
                                     {{ template.template_name }}
                                 </h2>
                                 <button
                                     type="button"
                                     class="rounded-lg border border-[#d8d4e7] px-2.5 py-1 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
-                                    @click="startNameEdit"
+                                    @click="startDetailsEdit"
                                 >
-                                    Edit Nama
+                                    Edit Detail
                                 </button>
                             </div>
-                            <div v-else class="flex flex-wrap items-center gap-2">
+                        </div>
+
+                        <div
+                            v-if="isEditingDetails"
+                            class="grid gap-3 rounded-xl border border-[#e8e6ef] bg-[#f5f5f9] p-4 md:grid-cols-2"
+                        >
+                            <label class="space-y-1 text-xs text-[#6d6b77]">
+                                <span>Nama Template</span>
                                 <input
-                                    v-model="nameDraft"
+                                    v-model="detailDraft.template_name"
                                     type="text"
-                                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
+                                    class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
+                                    placeholder="Template Photostrip 2 Slot"
                                 />
+                            </label>
+                            <label class="space-y-1 text-xs text-[#6d6b77]">
+                                <span>Kode Template (opsional)</span>
+                                <input
+                                    v-model="detailDraft.template_code"
+                                    type="text"
+                                    class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
+                                    placeholder="TPL-2SLOT"
+                                />
+                            </label>
+                            <label class="space-y-1 text-xs text-[#6d6b77]">
+                                <span>Category</span>
+                                <input
+                                    v-model="detailDraft.category"
+                                    type="text"
+                                    class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
+                                    placeholder="photostrip"
+                                />
+                            </label>
+                            <label class="space-y-1 text-xs text-[#6d6b77]">
+                                <span>Paper Size</span>
+                                <input
+                                    v-model="detailDraft.paper_size"
+                                    type="text"
+                                    class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
+                                    placeholder="4R"
+                                />
+                            </label>
+                            <label class="space-y-1 text-xs text-[#6d6b77]">
+                                <span>Canvas Width</span>
+                                <input
+                                    v-model.number="detailDraft.canvas_width"
+                                    type="number"
+                                    min="1"
+                                    class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
+                                />
+                            </label>
+                            <label class="space-y-1 text-xs text-[#6d6b77]">
+                                <span>Canvas Height</span>
+                                <input
+                                    v-model.number="detailDraft.canvas_height"
+                                    type="number"
+                                    min="1"
+                                    class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-sm"
+                                />
+                            </label>
+                            <div
+                                class="flex flex-wrap items-center gap-2 md:col-span-2"
+                            >
                                 <button
                                     type="button"
                                     class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                    :disabled="savingTemplate"
-                                    @click="saveTemplateName"
+                                    :disabled="
+                                        savingTemplate ||
+                                        !detailDraft.template_name
+                                    "
+                                    @click="saveTemplateDetails"
                                 >
-                                    Simpan
+                                    {{
+                                        savingTemplate
+                                            ? 'Menyimpan...'
+                                            : 'Simpan Detail Template'
+                                    }}
                                 </button>
                                 <button
                                     type="button"
-                                    class="rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
-                                    @click="cancelNameEdit"
+                                    class="rounded-lg border border-[#d8d4e7] bg-white px-3 py-2 text-xs font-semibold text-[#2f2b3dcc] hover:bg-[#f1f0f5]"
+                                    @click="cancelDetailsEdit"
                                 >
                                     Batal
                                 </button>
                             </div>
                         </div>
 
-                        <div class="grid gap-2 text-sm text-[#6d6b77] md:grid-cols-2 xl:grid-cols-4">
+                        <div
+                            v-else
+                            class="grid gap-2 text-sm text-[#6d6b77] md:grid-cols-2 xl:grid-cols-4"
+                        >
                             <p>Code: {{ template.template_code ?? '-' }}</p>
                             <p>Category: {{ template.category ?? '-' }}</p>
                             <p>Paper Size: {{ template.paper_size ?? '-' }}</p>
                             <p>
                                 Canvas:
-                                {{ template.canvas_width ?? 0 }}x{{ template.canvas_height ?? 0 }}
+                                {{ template.canvas_width ?? 0 }}x{{
+                                    template.canvas_height ?? 0
+                                }}
                             </p>
                             <p>Status: {{ templateStatusLabel }}</p>
-                            <p v-if="updatedByLabel">Updated by: {{ updatedByLabel }}</p>
-                            <p v-if="updatedAtLabel">Updated at: {{ updatedAtLabel }}</p>
+                            <p v-if="updatedByLabel">
+                                Updated by: {{ updatedByLabel }}
+                            </p>
+                            <p v-if="updatedAtLabel">
+                                Updated at: {{ updatedAtLabel }}
+                            </p>
                         </div>
                     </div>
 
@@ -1469,7 +1653,11 @@ onBeforeUnmount(() => {
                             :disabled="savingTemplate"
                             @click="toggleArchive"
                         >
-                            {{ template?.status === 'archived' ? 'Aktifkan' : 'Arsipkan' }}
+                            {{
+                                template?.status === 'archived'
+                                    ? 'Aktifkan'
+                                    : 'Arsipkan'
+                            }}
                         </button>
                         <button
                             type="button"
@@ -1500,7 +1688,11 @@ onBeforeUnmount(() => {
                             :disabled="!hasLayoutChanges || savingLayout"
                             @click="saveSlotLayout"
                         >
-                            {{ savingLayout ? 'Menyimpan...' : 'Simpan Layout Slot' }}
+                            {{
+                                savingLayout
+                                    ? 'Menyimpan...'
+                                    : 'Simpan Layout Slot'
+                            }}
                         </button>
                     </div>
                 </div>
@@ -1585,25 +1777,40 @@ onBeforeUnmount(() => {
 
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <StatsCard label="Total Slots" :value="sortedSlots.length" />
-                <StatsCard label="Canvas Width" :value="template.canvas_width ?? 0" />
-                <StatsCard label="Canvas Height" :value="template.canvas_height ?? 0" />
-                <StatsCard label="Paper Size" :value="template.paper_size ?? '-'" />
+                <StatsCard
+                    label="Canvas Width"
+                    :value="template.canvas_width ?? 0"
+                />
+                <StatsCard
+                    label="Canvas Height"
+                    :value="template.canvas_height ?? 0"
+                />
+                <StatsCard
+                    label="Paper Size"
+                    :value="template.paper_size ?? '-'"
+                />
             </div>
 
             <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-                <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
+                <div
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
+                >
                     <div class="mb-4 flex items-center justify-between gap-3">
                         <div>
                             <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                                 Canvas Preview
                             </h3>
                             <p class="text-sm text-[#6d6b77]">
-                                Posisi slot divisualkan relatif terhadap dimensi canvas template.
+                                Posisi slot divisualkan relatif terhadap dimensi
+                                canvas template.
                             </p>
                             <p class="text-xs text-[#7367f0]">
-                                Drag kotak slot di canvas untuk atur letak slot foto.
+                                Drag kotak slot di canvas untuk atur letak slot
+                                foto.
                             </p>
-                            <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#6d6b77]">
+                            <div
+                                class="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#6d6b77]"
+                            >
                                 <label class="inline-flex items-center gap-2">
                                     <input
                                         v-model="snapEnabled"
@@ -1638,7 +1845,9 @@ onBeforeUnmount(() => {
                         class="relative mx-auto flex min-h-96 w-full max-w-3xl items-center justify-center overflow-hidden rounded-3xl border border-dashed border-[#d8d4e7] bg-[#f5f5f9] p-6"
                     >
                         <img
-                            v-if="template.preview_url"
+                            v-if="
+                                template.preview_url && !template.thumbnail_url
+                            "
                             :src="template.preview_url"
                             :alt="template.template_name"
                             class="absolute inset-0 h-full w-full object-cover opacity-20"
@@ -1654,7 +1863,7 @@ onBeforeUnmount(() => {
                             <div
                                 v-for="slot in sortedSlots"
                                 :key="slot.slot_index"
-                                class="absolute z-30 touch-none flex items-center justify-center overflow-hidden border-2 text-sm font-semibold transition"
+                                class="absolute z-30 flex touch-none items-center justify-center overflow-hidden border-2 text-sm font-semibold transition"
                                 :class="
                                     slot.slot_index === selectedSlotIndex
                                         ? isSlotDragging(slot.slot_index)
@@ -1685,7 +1894,7 @@ onBeforeUnmount(() => {
                                 <button
                                     v-if="selectedSlotIndex === slot.slot_index"
                                     type="button"
-                                    class="absolute -left-1.5 -top-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
+                                    class="absolute -top-1.5 -left-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                     @pointerdown.stop="
                                         startResizeDrag(slot, 'nw', $event)
                                     "
@@ -1696,7 +1905,7 @@ onBeforeUnmount(() => {
                                 <button
                                     v-if="selectedSlotIndex === slot.slot_index"
                                     type="button"
-                                    class="absolute -right-1.5 -top-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
+                                    class="absolute -top-1.5 -right-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                     @pointerdown.stop="
                                         startResizeDrag(slot, 'ne', $event)
                                     "
@@ -1718,7 +1927,7 @@ onBeforeUnmount(() => {
                                 <button
                                     v-if="selectedSlotIndex === slot.slot_index"
                                     type="button"
-                                    class="absolute -left-1.5 -bottom-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
+                                    class="absolute -bottom-1.5 -left-1.5 h-3 w-3 rounded-full border border-emerald-600 bg-white shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                     @pointerdown.stop="
                                         startResizeDrag(slot, 'sw', $event)
                                     "
@@ -1734,14 +1943,16 @@ onBeforeUnmount(() => {
                                 class="absolute z-20 cursor-move"
                                 :style="getLayerStyle(layer)"
                                 v-show="layer.enabled !== false"
-                                @pointerdown.stop="startLayerDrag(layer, $event)"
+                                @pointerdown.stop="
+                                    startLayerDrag(layer, $event)
+                                "
                                 @pointermove="moveLayerDrag($event)"
                                 @pointerup="stopLayerDrag($event)"
                                 @pointercancel="stopLayerDrag($event)"
                             >
                                 <div
                                     v-if="layer.type === 'text'"
-                                    class="whitespace-pre-wrap rounded bg-white/80 px-1.5 py-1 text-xs font-semibold text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
+                                    class="rounded bg-white/80 px-1.5 py-1 text-xs font-semibold whitespace-pre-wrap text-[#2f2b3dcc] shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
                                 >
                                     {{ layer.text || layer.label }}
                                 </div>
@@ -1774,14 +1985,18 @@ onBeforeUnmount(() => {
                     >
                         <div v-if="selectedSlot">
                             Slot aktif: {{ selectedSlot.slot_index }} -
-                            {{ selectedSlot.width }}x{{ selectedSlot.height }}
-                            - X: {{ selectedSlot.x }} - Y: {{ selectedSlot.y }}
+                            {{ selectedSlot.width }}x{{ selectedSlot.height }} -
+                            X: {{ selectedSlot.x }} - Y: {{ selectedSlot.y }}
                         </div>
                         <div v-else class="text-xs text-emerald-700">
-                            Pilih slot untuk melihat detail dan menggeser posisi.
+                            Pilih slot untuk melihat detail dan menggeser
+                            posisi.
                         </div>
 
-                        <div v-if="selectedSlot" class="flex flex-wrap items-center gap-2">
+                        <div
+                            v-if="selectedSlot"
+                            class="flex flex-wrap items-center gap-2"
+                        >
                             <button
                                 type="button"
                                 class="rounded-lg border border-emerald-300 bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
@@ -1838,7 +2053,11 @@ onBeforeUnmount(() => {
                             <button
                                 type="button"
                                 class="rounded-lg border border-red-300 bg-white px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                                :disabled="savingSlot || sortedSlots.length <= 1 || !selectedSlot"
+                                :disabled="
+                                    savingSlot ||
+                                    sortedSlots.length <= 1 ||
+                                    !selectedSlot
+                                "
                                 @click="removeSelectedSlot"
                             >
                                 Hapus Slot
@@ -1846,7 +2065,9 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div class="mt-4 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3">
+                    <div
+                        class="mt-4 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3"
+                    >
                         <div class="text-xs font-semibold text-[#2f2b3dcc]">
                             Letak Foto Slot
                         </div>
@@ -1855,7 +2076,12 @@ onBeforeUnmount(() => {
                             type="file"
                             accept="image/*"
                             class="rounded-lg border border-[#d8d4e7] bg-white px-3 py-2 text-xs"
-                            @change="onSlotPhotoSelected(selectedSlot.slot_index, $event)"
+                            @change="
+                                onSlotPhotoSelected(
+                                    selectedSlot.slot_index,
+                                    $event,
+                                )
+                            "
                         />
                         <div class="flex items-center gap-2">
                             <button
@@ -1876,11 +2102,34 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div class="mt-3 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3">
+                    <div
+                        class="mt-3 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3"
+                    >
+                        <div class="text-xs font-semibold text-[#2f2b3dcc]">
+                            Thumbnail Preview Template
+                        </div>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            class="rounded-lg border border-[#d8d4e7] bg-white px-3 py-2 text-xs"
+                            :disabled="uploadingThumbnail"
+                            @change="setTemplateThumbnailFile"
+                        />
+                        <p class="text-xs text-[#6d6b77]">
+                            Thumbnail ini dipakai sebagai preview utama template
+                            di daftar template dan editor.
+                        </p>
+                    </div>
+
+                    <div
+                        class="mt-3 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3"
+                    >
                         <div class="text-xs font-semibold text-[#2f2b3dcc]">
                             Overlay Template PNG
                         </div>
-                        <label class="inline-flex items-center gap-2 text-xs text-[#6d6b77]">
+                        <label
+                            class="inline-flex items-center gap-2 text-xs text-[#6d6b77]"
+                        >
                             <input
                                 v-model="overlayEnabled"
                                 type="checkbox"
@@ -1905,7 +2154,9 @@ onBeforeUnmount(() => {
                                 step="5"
                                 class="w-full"
                             />
-                            <span class="w-10 text-right text-xs font-semibold text-[#2f2b3dcc]">
+                            <span
+                                class="w-10 text-right text-xs font-semibold text-[#2f2b3dcc]"
+                            >
                                 {{ overlayOpacity }}%
                             </span>
                         </div>
@@ -1918,8 +2169,12 @@ onBeforeUnmount(() => {
                         </button>
                     </div>
 
-                    <div class="mt-3 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3">
-                        <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div
+                        class="mt-3 grid gap-3 rounded-lg border border-[#e8e6ef] bg-[#f5f5f9] p-3"
+                    >
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-2"
+                        >
                             <div class="text-xs font-semibold text-[#2f2b3dcc]">
                                 Dynamic Layer (Text/QR)
                             </div>
@@ -1941,7 +2196,10 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
 
-                        <div v-if="!dynamicLayers.length" class="text-xs text-[#6d6b77]">
+                        <div
+                            v-if="!dynamicLayers.length"
+                            class="text-xs text-[#6d6b77]"
+                        >
                             Belum ada layer tambahan.
                         </div>
 
@@ -1951,9 +2209,17 @@ onBeforeUnmount(() => {
                                 :key="layer.id"
                                 class="rounded-lg border border-[#e8e6ef] bg-white p-3"
                             >
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="text-xs font-semibold text-[#2f2b3dcc]">
-                                        {{ layer.type === 'text' ? 'Text Layer' : 'QR Layer' }}
+                                <div
+                                    class="flex items-start justify-between gap-3"
+                                >
+                                    <div
+                                        class="text-xs font-semibold text-[#2f2b3dcc]"
+                                    >
+                                        {{
+                                            layer.type === 'text'
+                                                ? 'Text Layer'
+                                                : 'QR Layer'
+                                        }}
                                     </div>
                                     <button
                                         type="button"
@@ -1965,7 +2231,9 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <div class="mt-3 grid gap-3 md:grid-cols-2">
-                                    <label class="inline-flex items-center gap-2 text-xs text-[#6d6b77] md:col-span-2">
+                                    <label
+                                        class="inline-flex items-center gap-2 text-xs text-[#6d6b77] md:col-span-2"
+                                    >
                                         <input
                                             v-model="layer.enabled"
                                             type="checkbox"
@@ -1973,7 +2241,9 @@ onBeforeUnmount(() => {
                                         />
                                         Aktifkan layer
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Label</span>
                                         <input
                                             v-model="layer.label"
@@ -1982,7 +2252,9 @@ onBeforeUnmount(() => {
                                             placeholder="Event Name"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Opacity</span>
                                         <input
                                             v-model.number="layer.opacity"
@@ -1992,7 +2264,9 @@ onBeforeUnmount(() => {
                                             class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>X</span>
                                         <input
                                             v-model.number="layer.x"
@@ -2001,7 +2275,9 @@ onBeforeUnmount(() => {
                                             class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Y</span>
                                         <input
                                             v-model.number="layer.y"
@@ -2016,7 +2292,9 @@ onBeforeUnmount(() => {
                                     v-if="layer.type === 'text'"
                                     class="mt-3 grid gap-3 md:grid-cols-2"
                                 >
-                                    <label class="space-y-1 text-xs text-[#6d6b77] md:col-span-2">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77] md:col-span-2"
+                                    >
                                         <span>Text</span>
                                         <input
                                             v-model="layer.text"
@@ -2025,7 +2303,9 @@ onBeforeUnmount(() => {
                                             placeholder="Happy Wedding"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Font Size</span>
                                         <input
                                             v-model.number="layer.font_size"
@@ -2034,7 +2314,9 @@ onBeforeUnmount(() => {
                                             class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Color</span>
                                         <input
                                             v-model="layer.color"
@@ -2043,14 +2325,18 @@ onBeforeUnmount(() => {
                                             placeholder="#111827"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Align</span>
                                         <select
                                             v-model="layer.align"
                                             class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         >
                                             <option value="left">Left</option>
-                                            <option value="center">Center</option>
+                                            <option value="center">
+                                                Center
+                                            </option>
                                             <option value="right">Right</option>
                                         </select>
                                     </label>
@@ -2060,7 +2346,9 @@ onBeforeUnmount(() => {
                                     v-else
                                     class="mt-3 grid gap-3 md:grid-cols-2"
                                 >
-                                    <label class="space-y-1 text-xs text-[#6d6b77] md:col-span-2">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77] md:col-span-2"
+                                    >
                                         <span>QR Data</span>
                                         <input
                                             v-model="layer.qr_data"
@@ -2069,7 +2357,9 @@ onBeforeUnmount(() => {
                                             placeholder="https://photobooth.local/session"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Width</span>
                                         <input
                                             v-model.number="layer.width"
@@ -2078,7 +2368,9 @@ onBeforeUnmount(() => {
                                             class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Height</span>
                                         <input
                                             v-model.number="layer.height"
@@ -2087,7 +2379,9 @@ onBeforeUnmount(() => {
                                             class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>Padding</span>
                                         <input
                                             v-model.number="layer.padding"
@@ -2096,7 +2390,9 @@ onBeforeUnmount(() => {
                                             class="w-full rounded-lg border border-[#d8d4e7] px-3 py-2 text-xs"
                                         />
                                     </label>
-                                    <label class="space-y-1 text-xs text-[#6d6b77]">
+                                    <label
+                                        class="space-y-1 text-xs text-[#6d6b77]"
+                                    >
                                         <span>QR Background</span>
                                         <input
                                             v-model="layer.bg_color"
@@ -2107,47 +2403,81 @@ onBeforeUnmount(() => {
                                     </label>
                                 </div>
 
-                                <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-[#6d6b77]">
-                                    <span class="font-semibold text-[#2f2b3dcc]">Insert token:</span>
+                                <div
+                                    class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-[#6d6b77]"
+                                >
+                                    <span class="font-semibold text-[#2f2b3dcc]"
+                                        >Insert token:</span
+                                    >
                                     <button
                                         type="button"
                                         class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
-                                        @click="insertLayerToken(layer, '{session_code}')"
+                                        @click="
+                                            insertLayerToken(
+                                                layer,
+                                                '{session_code}',
+                                            )
+                                        "
                                     >
                                         Session Code
                                     </button>
                                     <button
                                         type="button"
                                         class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
-                                        @click="insertLayerToken(layer, '{station_code}')"
+                                        @click="
+                                            insertLayerToken(
+                                                layer,
+                                                '{station_code}',
+                                            )
+                                        "
                                     >
                                         Station Code
                                     </button>
                                     <button
                                         type="button"
                                         class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
-                                        @click="insertLayerToken(layer, '{station_name}')"
+                                        @click="
+                                            insertLayerToken(
+                                                layer,
+                                                '{station_name}',
+                                            )
+                                        "
                                     >
                                         Station Name
                                     </button>
                                     <button
                                         type="button"
                                         class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
-                                        @click="insertLayerToken(layer, '{device_name}')"
+                                        @click="
+                                            insertLayerToken(
+                                                layer,
+                                                '{device_name}',
+                                            )
+                                        "
                                     >
                                         Device Name
                                     </button>
                                     <button
                                         type="button"
                                         class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
-                                        @click="insertLayerToken(layer, '{render_date}')"
+                                        @click="
+                                            insertLayerToken(
+                                                layer,
+                                                '{render_date}',
+                                            )
+                                        "
                                     >
                                         Render Date
                                     </button>
                                     <button
                                         type="button"
                                         class="rounded-full border border-[#d8d4e7] px-2 py-1 hover:bg-[#f5f5f9]"
-                                        @click="insertLayerToken(layer, '{render_time}')"
+                                        @click="
+                                            insertLayerToken(
+                                                layer,
+                                                '{render_time}',
+                                            )
+                                        "
                                     >
                                         Render Time
                                     </button>
@@ -2155,8 +2485,12 @@ onBeforeUnmount(() => {
                             </div>
                         </div>
 
-                        <div class="rounded-lg border border-dashed border-[#d8d4e7] bg-white px-3 py-2 text-xs text-[#6d6b77]">
-                            Variabel cepat: {session_code}, {station_code}, {station_name}, {device_name}, {render_date}, {render_time}
+                        <div
+                            class="rounded-lg border border-dashed border-[#d8d4e7] bg-white px-3 py-2 text-xs text-[#6d6b77]"
+                        >
+                            Variabel cepat: {session_code}, {station_code},
+                            {station_name}, {device_name}, {render_date},
+                            {render_time}
                         </div>
 
                         <button
@@ -2165,12 +2499,18 @@ onBeforeUnmount(() => {
                             :disabled="savingLayers"
                             @click="saveDynamicLayers"
                         >
-                            {{ savingLayers ? 'Menyimpan Layer...' : 'Simpan Layer Template' }}
+                            {{
+                                savingLayers
+                                    ? 'Menyimpan Layer...'
+                                    : 'Simpan Layer Template'
+                            }}
                         </button>
                     </div>
                 </div>
 
-                <div class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]">
+                <div
+                    class="rounded-xl border border-[#e8e6ef] bg-white p-5 shadow-[0_2px_10px_rgba(47,43,61,0.06)]"
+                >
                     <h3 class="text-lg font-semibold text-[#2f2b3dcc]">
                         Slot Specification
                     </h3>
@@ -2193,7 +2533,9 @@ onBeforeUnmount(() => {
                                     : 'border-[#e8e6ef] hover:bg-[#f5f5f9]'
                             "
                         >
-                            <div class="flex items-center justify-between gap-3">
+                            <div
+                                class="flex items-center justify-between gap-3"
+                            >
                                 <button
                                     type="button"
                                     class="font-medium text-[#2f2b3dcc]"
@@ -2201,7 +2543,9 @@ onBeforeUnmount(() => {
                                 >
                                     Slot {{ slot.slot_index }}
                                 </button>
-                                <div class="rounded-full bg-[#edeafd] px-2.5 py-1 text-xs font-medium text-[#685dd8]">
+                                <div
+                                    class="rounded-full bg-[#edeafd] px-2.5 py-1 text-xs font-medium text-[#685dd8]"
+                                >
                                     {{ slot.width }}x{{ slot.height }}
                                 </div>
                             </div>
@@ -2216,7 +2560,11 @@ onBeforeUnmount(() => {
                                         class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
-                                                x: Number(($event.target as HTMLInputElement).value),
+                                                x: Number(
+                                                    (
+                                                        $event.target as HTMLInputElement
+                                                    ).value,
+                                                ),
                                             })
                                         "
                                     />
@@ -2230,7 +2578,11 @@ onBeforeUnmount(() => {
                                         class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
-                                                y: Number(($event.target as HTMLInputElement).value),
+                                                y: Number(
+                                                    (
+                                                        $event.target as HTMLInputElement
+                                                    ).value,
+                                                ),
                                             })
                                         "
                                     />
@@ -2244,7 +2596,11 @@ onBeforeUnmount(() => {
                                         class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
-                                                width: Number(($event.target as HTMLInputElement).value),
+                                                width: Number(
+                                                    (
+                                                        $event.target as HTMLInputElement
+                                                    ).value,
+                                                ),
                                             })
                                         "
                                     />
@@ -2258,7 +2614,11 @@ onBeforeUnmount(() => {
                                         class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
-                                                height: Number(($event.target as HTMLInputElement).value),
+                                                height: Number(
+                                                    (
+                                                        $event.target as HTMLInputElement
+                                                    ).value,
+                                                ),
                                             })
                                         "
                                     />
@@ -2272,7 +2632,11 @@ onBeforeUnmount(() => {
                                         class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
-                                                rotation: Number(($event.target as HTMLInputElement).value),
+                                                rotation: Number(
+                                                    (
+                                                        $event.target as HTMLInputElement
+                                                    ).value,
+                                                ),
                                             })
                                         "
                                     />
@@ -2286,7 +2650,11 @@ onBeforeUnmount(() => {
                                         class="w-full rounded-lg border border-[#d8d4e7] px-2 py-1.5 text-sm"
                                         @input="
                                             updateSlotDraft(slot.slot_index, {
-                                                border_radius: Number(($event.target as HTMLInputElement).value),
+                                                border_radius: Number(
+                                                    (
+                                                        $event.target as HTMLInputElement
+                                                    ).value,
+                                                ),
                                             })
                                         "
                                     />
@@ -2299,6 +2667,3 @@ onBeforeUnmount(() => {
         </div>
     </AppLayout>
 </template>
-
-
-

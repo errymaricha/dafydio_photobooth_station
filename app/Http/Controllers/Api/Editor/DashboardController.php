@@ -8,11 +8,21 @@ use App\Models\Printer;
 use App\Models\PrintLog;
 use App\Models\PrintOrder;
 use App\Models\PrintQueueJob;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
+    {
+        return response()->json(Cache::remember(
+            'editor.dashboard.index',
+            now()->addSeconds(15),
+            fn (): array => $this->dashboardPayload(),
+        ));
+    }
+
+    private function dashboardPayload(): array
     {
         $today = now()->toDateString();
         $sevenDaysAgo = now()->subDays(6)->toDateString();
@@ -152,7 +162,7 @@ class DashboardController extends Controller
             })
             ->values();
 
-        return response()->json([
+        return [
             'sessions' => [
                 'uploaded_today' => PhotoSession::where('status', 'uploaded')
                     ->whereDate('completed_at', $today)
@@ -215,6 +225,6 @@ class DashboardController extends Controller
             'recent_print_orders' => $recentPrintOrders,
             'recent_failed_jobs' => $recentFailedJobs,
             'recent_logs' => $recentLogs,
-        ]);
+        ];
     }
 }

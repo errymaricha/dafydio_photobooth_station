@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Api\Device;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssetFile;
 use App\Models\Template;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class MasterDataController extends Controller
 {
     private const DEVICE_CONTRACT_VERSION = '2026-04-17';
+
+    private const TEMPLATE_ASSET_URL_TTL_DAYS = 30;
 
     public function index(Request $request): JsonResponse
     {
@@ -28,13 +31,25 @@ class MasterDataController extends Controller
             ->where('status', 'active')
             ->orderBy('template_name')
             ->get()
-            ->map(function (Template $template): array {
+            ->map(function (Template $template) use ($device): array {
                 $overlayAsset = $template->assets->firstWhere('asset_type', 'overlay_png');
+                $thumbnailAsset = $template->assets->firstWhere('asset_type', 'thumbnail_image');
+                $overlayAssetId = $overlayAsset?->file?->id;
+                $thumbnailAssetId = $thumbnailAsset?->file?->id;
                 $overlayUrl = null;
+                $thumbnailUrl = null;
 
                 if ($overlayAsset && $overlayAsset->file) {
-                    $overlayUrl = Storage::disk($overlayAsset->file->storage_disk)
-                        ->url($overlayAsset->file->file_path);
+                    $overlayUrl = $this->signedTemplateAssetUrl(
+                        $overlayAsset->file,
+                        is_string($device?->id) ? $device->id : null
+                    );
+                }
+                if ($thumbnailAsset && $thumbnailAsset->file) {
+                    $thumbnailUrl = $this->signedTemplateAssetUrl(
+                        $thumbnailAsset->file,
+                        is_string($device?->id) ? $device->id : null
+                    );
                 }
 
                 return [
@@ -45,7 +60,11 @@ class MasterDataController extends Controller
                     'paper_size' => $template->paper_size,
                     'canvas_width' => $template->canvas_width,
                     'canvas_height' => $template->canvas_height,
-                    'preview_url' => $template->preview_url,
+                    'updated_at' => $template->updated_at?->toISOString(),
+                    'overlay_asset_id' => $overlayAssetId,
+                    'thumbnail_asset_id' => $thumbnailAssetId,
+                    'thumbnail_url' => $thumbnailUrl,
+                    'preview_url' => $thumbnailUrl ?? $template->preview_url,
                     'overlay_url' => $overlayUrl,
                     'config' => $template->config_json,
                     'slots' => $template->slots
@@ -84,5 +103,20 @@ class MasterDataController extends Controller
             ],
             'templates' => $templates,
         ]);
+    }
+
+    private function signedTemplateAssetUrl(AssetFile $assetFile, ?string $deviceId = null): string
+    {
+        $relativeUrl = URL::temporarySignedRoute(
+            'api.device.template-assets.show',
+            now()->addDays(self::TEMPLATE_ASSET_URL_TTL_DAYS),
+            [
+                'assetFile' => $assetFile->id,
+                'device_id' => $deviceId,
+            ],
+            absolute: false,
+        );
+
+        return rtrim((string) config('app.url'), '/').$relativeUrl;
     }
 }

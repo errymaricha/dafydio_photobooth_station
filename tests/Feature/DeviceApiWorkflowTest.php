@@ -3,16 +3,21 @@
 namespace Tests\Feature;
 
 use App\Models\AndroidDevice;
+use App\Models\AssetFile;
+use App\Models\EditJob;
 use App\Models\PhotoSession;
 use App\Models\Role;
+use App\Models\SessionPhoto;
 use App\Models\SessionVoucher;
 use App\Models\Station;
 use App\Models\Template;
+use App\Models\TemplateAsset;
 use App\Models\TemplateSlot;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Queue;
@@ -760,12 +765,1015 @@ class DeviceApiWorkflowTest extends TestCase
                     'paper_size',
                     'canvas_width',
                     'canvas_height',
+                    'thumbnail_url',
                     'preview_url',
                     'overlay_url',
                     'config',
                     'slots',
                 ]],
             ]);
+    }
+
+    public function test_device_can_send_heartbeat_to_update_operational_metadata(): void
+    {
+        $device = $this->createDevice();
+
+        Sanctum::actingAs($device);
+
+        $this
+            ->withServerVariables(['REMOTE_ADDR' => '192.168.88.248'])
+            ->postJson('/api/device/heartbeat', [
+                'device_type' => 'minipc_kiosk',
+                'local_ip' => '192.168.88.248',
+                'battery_percent' => 87,
+                'network_strength' => 92,
+                'app_version' => '1.2.3',
+                'os_name' => 'Windows',
+                'os_version' => '11',
+                'capabilities' => [
+                    'camera' => true,
+                    'printer' => true,
+                    'offline_queue' => true,
+                    'local_render' => false,
+                ],
+                'metrics' => [
+                    'disk_free_mb' => 51200,
+                ],
+                'last_sync_at' => now()->subMinute()->toIso8601String(),
+            ])
+            ->assertOk()
+            ->assertJsonPath('status', 'ok')
+            ->assertJsonPath('server_time', fn ($value) => is_string($value) && $value !== '')
+            ->assertJsonPath('message', 'Heartbeat received')
+            ->assertJsonPath('device.device_type', 'minipc_kiosk')
+            ->assertJsonPath('device.local_ip', '192.168.88.248')
+            ->assertJsonPath('device.app_version', '1.2.3')
+            ->assertJsonPath('device.os_name', 'Windows')
+            ->assertJsonPath('device.os_version', '11')
+            ->assertJsonPath('device.capabilities.camera', true)
+            ->assertJsonPath('device.capabilities.printer', true);
+
+        $this->assertDatabaseHas('android_devices', [
+            'id' => $device->id,
+            'device_type' => 'minipc_kiosk',
+            'local_ip' => '192.168.88.248',
+            'battery_percent' => 87,
+            'app_version' => '1.2.3',
+            'os_name' => 'Windows',
+            'os_version' => '11',
+        ]);
+
+        $this->assertDatabaseHas('device_heartbeats', [
+            'device_id' => $device->id,
+            'device_type' => 'minipc_kiosk',
+            'local_ip' => '192.168.88.248',
+            'battery_percent' => 87,
+            'network_strength' => 92,
+            'app_version' => '1.2.3',
+            'os_name' => 'Windows',
+            'os_version' => '11',
+        ]);
+    }
+
+    public function test_device_heartbeat_accepts_android_camel_case_status_payload(): void
+    {
+        $device = $this->createDevice();
+
+        Sanctum::actingAs($device);
+
+        $this
+            ->withServerVariables(['REMOTE_ADDR' => '192.168.88.246'])
+            ->postJson('/api/device/heartbeat', [
+                'localIp' => '192.168.88.101',
+                'appVersion' => '1.0.0-dev',
+                'os' => 'Android 14',
+                'capabilities' => 'camera=true, printer=false, offline_queue=true, local_render=true',
+                'lastHeartbeatAt' => '2026-04-30T10:42:31Z',
+                'lastSyncAt' => '2026-04-30T10:42:31Z',
+                'lastResult' => 'success',
+            ])
+            ->assertOk()
+            ->assertJsonPath('status', 'ok')
+            ->assertJsonPath('server_time', fn ($value) => is_string($value) && $value !== '')
+            ->assertJsonPath('device.local_ip', '192.168.88.246')
+            ->assertJsonPath('device.app_version', '1.0.0-dev')
+            ->assertJsonPath('device.os_name', 'Android')
+            ->assertJsonPath('device.os_version', '14')
+            ->assertJsonPath('device.capabilities.camera', true)
+            ->assertJsonPath('device.capabilities.printer', false)
+            ->assertJsonPath('device.capabilities.offline_queue', true)
+            ->assertJsonPath('device.capabilities.local_render', true)
+            ->assertJsonPath('device.last_heartbeat_at', '2026-04-30T10:42:31+07:00')
+            ->assertJsonPath('device.last_sync_at', '2026-04-30T10:42:31+07:00');
+
+        $this->assertDatabaseHas('android_devices', [
+            'id' => $device->id,
+            'local_ip' => '192.168.88.246',
+            'app_version' => '1.0.0-dev',
+            'os_name' => 'Android',
+            'os_version' => '14',
+        ]);
+
+        $this->assertDatabaseHas('device_heartbeats', [
+            'device_id' => $device->id,
+            'local_ip' => '192.168.88.246',
+            'app_version' => '1.0.0-dev',
+            'os_name' => 'Android',
+            'os_version' => '14',
+        ]);
+    }
+
+    public function test_device_can_fetch_templates_from_dedicated_endpoint(): void
+    {
+        $device = $this->createDevice();
+
+        $activeTemplate = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-DEVICE-001',
+            'template_name' => 'Device Template Active',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'config_json' => ['background_color' => '#ffffff'],
+            'status' => 'active',
+        ]);
+
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $activeTemplate->id,
+            'slot_index' => 1,
+            'x' => 10,
+            'y' => 20,
+            'width' => 580,
+            'height' => 860,
+            'rotation' => 0,
+            'border_radius' => 8,
+        ]);
+
+        Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-DEVICE-002',
+            'template_name' => 'Device Template Inactive',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'config_json' => ['background_color' => '#000000'],
+            'status' => 'inactive',
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $this->getJson('/api/device/templates')
+            ->assertOk()
+            ->assertJsonPath('contract_version', '2026-04-17')
+            ->assertJsonPath('filters.category', null)
+            ->assertJsonPath('filters.paper_size', null)
+            ->assertJsonPath('filters.q', null)
+            ->assertJsonPath('filters.updated_since', null)
+            ->assertJsonPath('filters.limit', 100)
+            ->assertJsonPath('filters.include_slots', true)
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('templates.0.template_code', 'TPL-DEVICE-001')
+            ->assertJsonPath('templates.0.slots.0.slot_index', 1)
+            ->assertJsonStructure([
+                'contract_version',
+                'filters' => [
+                    'category',
+                    'paper_size',
+                    'q',
+                    'updated_since',
+                    'limit',
+                    'include_slots',
+                ],
+                'count',
+                'templates' => [[
+                    'id',
+                    'template_code',
+                    'template_name',
+                    'category',
+                    'paper_size',
+                    'canvas_width',
+                    'canvas_height',
+                    'thumbnail_url',
+                    'preview_url',
+                    'overlay_url',
+                    'config',
+                    'slots',
+                ]],
+            ]);
+    }
+
+    public function test_device_can_filter_templates_by_category_paper_size_and_search_query(): void
+    {
+        $device = $this->createDevice();
+
+        Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-WED-4R',
+            'template_name' => 'Wedding Portrait',
+            'category' => 'wedding',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+
+        Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-WED-6R',
+            'template_name' => 'Wedding Landscape',
+            'category' => 'wedding',
+            'paper_size' => '6R',
+            'canvas_width' => 1800,
+            'canvas_height' => 1200,
+            'status' => 'active',
+        ]);
+
+        Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-BDAY-4R',
+            'template_name' => 'Birthday Party',
+            'category' => 'birthday',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $this->getJson('/api/device/templates?category=wedding&paper_size=4R&q=portrait')
+            ->assertOk()
+            ->assertJsonPath('filters.category', 'wedding')
+            ->assertJsonPath('filters.paper_size', '4R')
+            ->assertJsonPath('filters.q', 'portrait')
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('templates.0.template_code', 'TPL-WED-4R')
+            ->assertJsonPath('templates.0.template_name', 'Wedding Portrait');
+    }
+
+    public function test_device_can_filter_templates_by_updated_since_limit_and_exclude_slots(): void
+    {
+        $device = $this->createDevice();
+
+        $oldTemplate = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-OLD-001',
+            'template_name' => 'Old Template',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+        DB::table('templates')
+            ->where('id', $oldTemplate->id)
+            ->update([
+                'created_at' => now()->subDays(7),
+                'updated_at' => now()->subDays(7),
+            ]);
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $oldTemplate->id,
+            'slot_index' => 1,
+            'x' => 0,
+            'y' => 0,
+            'width' => 1200,
+            'height' => 900,
+            'rotation' => 0,
+            'border_radius' => 0,
+        ]);
+
+        $newTemplateA = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-NEW-001',
+            'template_name' => 'New Template A',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+        DB::table('templates')
+            ->where('id', $newTemplateA->id)
+            ->update([
+                'created_at' => now()->subHours(2),
+                'updated_at' => now()->subHours(2),
+            ]);
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $newTemplateA->id,
+            'slot_index' => 1,
+            'x' => 10,
+            'y' => 10,
+            'width' => 500,
+            'height' => 700,
+            'rotation' => 0,
+            'border_radius' => 0,
+        ]);
+
+        $newTemplateB = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-NEW-002',
+            'template_name' => 'New Template B',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+        DB::table('templates')
+            ->where('id', $newTemplateB->id)
+            ->update([
+                'created_at' => now()->subHour(),
+                'updated_at' => now()->subHour(),
+            ]);
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $newTemplateB->id,
+            'slot_index' => 1,
+            'x' => 20,
+            'y' => 20,
+            'width' => 600,
+            'height' => 800,
+            'rotation' => 0,
+            'border_radius' => 0,
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $updatedSince = now()->subDay()->toDateTimeString();
+        $encodedUpdatedSince = urlencode($updatedSince);
+
+        $this->getJson("/api/device/templates?updated_since={$encodedUpdatedSince}&limit=1&include_slots=false")
+            ->assertOk()
+            ->assertJsonPath('filters.updated_since', $updatedSince)
+            ->assertJsonPath('filters.limit', 1)
+            ->assertJsonPath('filters.include_slots', false)
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('templates.0.template_code', 'TPL-NEW-002')
+            ->assertJsonPath('templates.0.slots', []);
+    }
+
+    public function test_device_can_fetch_single_template_detail_and_inactive_template_returns_404(): void
+    {
+        $device = $this->createDevice();
+
+        $activeTemplate = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-DETAIL-001',
+            'template_name' => 'Device Template Detail',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'config_json' => ['background_color' => '#ffffff'],
+            'status' => 'active',
+        ]);
+
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $activeTemplate->id,
+            'slot_index' => 1,
+            'x' => 0,
+            'y' => 0,
+            'width' => 1200,
+            'height' => 900,
+            'rotation' => 0,
+            'border_radius' => 0,
+        ]);
+
+        $inactiveTemplate = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-DETAIL-002',
+            'template_name' => 'Device Template Hidden',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'config_json' => ['background_color' => '#000000'],
+            'status' => 'inactive',
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $this->getJson("/api/device/templates/{$activeTemplate->id}")
+            ->assertOk()
+            ->assertJsonPath('contract_version', '2026-04-17')
+            ->assertJsonPath('template.template_code', 'TPL-DETAIL-001')
+            ->assertJsonPath('template.slots.0.slot_index', 1)
+            ->assertJsonStructure([
+                'contract_version',
+                'template' => [
+                    'id',
+                    'template_code',
+                    'template_name',
+                    'category',
+                    'paper_size',
+                    'canvas_width',
+                    'canvas_height',
+                    'thumbnail_url',
+                    'preview_url',
+                    'overlay_url',
+                    'config',
+                    'slots',
+                ],
+            ]);
+
+        $this->getJson("/api/device/templates/{$activeTemplate->id}?include_slots=false")
+            ->assertOk()
+            ->assertJsonPath('template.template_code', 'TPL-DETAIL-001')
+            ->assertJsonPath('template.slots', []);
+
+        $this->getJson("/api/device/templates/{$inactiveTemplate->id}")
+            ->assertNotFound()
+            ->assertJsonPath('message', 'Template not found.');
+    }
+
+    public function test_device_template_preview_url_prefers_thumbnail_asset(): void
+    {
+        $device = $this->createDevice();
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-THUMB-001',
+            'template_name' => 'Template Thumbnail',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'preview_url' => 'https://legacy.example/preview.png',
+            'status' => 'active',
+        ]);
+
+        $thumbnailAsset = AssetFile::create([
+            'id' => (string) Str::uuid(),
+            'storage_disk' => 'public',
+            'file_path' => 'templates/thumb-test/thumbnail.png',
+            'file_name' => 'thumbnail.png',
+            'file_ext' => 'png',
+            'mime_type' => 'image/png',
+            'file_size_bytes' => 1024,
+            'file_category' => 'template_thumbnail',
+            'created_by_type' => 'system',
+        ]);
+
+        TemplateAsset::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $template->id,
+            'asset_type' => 'thumbnail_image',
+            'file_id' => $thumbnailAsset->id,
+            'sort_order' => 0,
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $response = $this->getJson("/api/device/templates/{$template->id}")
+            ->assertOk();
+
+        $thumbnailUrl = (string) $response->json('template.thumbnail_url');
+        $previewUrl = (string) $response->json('template.preview_url');
+
+        $this->assertStringContainsString('/api/device/template-assets/', $thumbnailUrl);
+        $this->assertStringContainsString('signature=', $thumbnailUrl);
+        $this->assertStringContainsString('expires=', $thumbnailUrl);
+        $this->assertSame($thumbnailUrl, $previewUrl);
+    }
+
+    public function test_device_can_download_template_asset_via_signed_url(): void
+    {
+        $device = $this->createDevice();
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-SIGNED-001',
+            'template_name' => 'Template Signed Asset',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+
+        $thumbnailPath = 'templates/thumb-test/signed-thumbnail.png';
+        $fakeThumbnail = UploadedFile::fake()->image('signed-thumbnail.png', 100, 100);
+        Storage::disk('public')->put(
+            $thumbnailPath,
+            file_get_contents($fakeThumbnail->getRealPath()) ?: ''
+        );
+
+        $thumbnailAsset = AssetFile::create([
+            'id' => (string) Str::uuid(),
+            'storage_disk' => 'public',
+            'file_path' => $thumbnailPath,
+            'file_name' => 'signed-thumbnail.png',
+            'file_ext' => 'png',
+            'mime_type' => 'image/png',
+            'file_size_bytes' => Storage::disk('public')->size($thumbnailPath),
+            'file_category' => 'template_thumbnail',
+            'created_by_type' => 'system',
+        ]);
+
+        TemplateAsset::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $template->id,
+            'asset_type' => 'thumbnail_image',
+            'file_id' => $thumbnailAsset->id,
+            'sort_order' => 0,
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $response = $this->getJson("/api/device/templates/{$template->id}")
+            ->assertOk();
+
+        $signedUrl = (string) $response->json('template.thumbnail_url');
+        $path = parse_url($signedUrl, PHP_URL_PATH);
+        $query = parse_url($signedUrl, PHP_URL_QUERY);
+        $signedPath = $path.($query ? '?'.$query : '');
+
+        $this->get($signedPath)
+            ->assertOk()
+            ->assertHeader('content-type', 'image/png')
+            ->assertHeader('content-disposition', 'inline; filename="signed-thumbnail.png"')
+            ->assertHeader('x-content-type-options', 'nosniff')
+            ->assertHeader('accept-ranges', 'bytes')
+            ->assertHeader('x-asset-id', $thumbnailAsset->id)
+            ->assertHeader('x-asset-size', (string) Storage::disk('public')->size($thumbnailPath));
+    }
+
+    public function test_device_can_diagnose_template_asset_with_auth_token(): void
+    {
+        $device = $this->createDevice();
+
+        $thumbnailPath = 'templates/thumb-test/diagnose-thumbnail.png';
+        $fakeThumbnail = UploadedFile::fake()->image('diagnose-thumbnail.png', 100, 100);
+        Storage::disk('public')->put(
+            $thumbnailPath,
+            file_get_contents($fakeThumbnail->getRealPath()) ?: ''
+        );
+
+        $thumbnailAsset = AssetFile::create([
+            'id' => (string) Str::uuid(),
+            'storage_disk' => 'public',
+            'file_path' => $thumbnailPath,
+            'file_name' => 'diagnose-thumbnail.png',
+            'file_ext' => 'png',
+            'mime_type' => 'image/png',
+            'file_size_bytes' => Storage::disk('public')->size($thumbnailPath),
+            'file_category' => 'template_thumbnail',
+            'created_by_type' => 'system',
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $this->getJson("/api/device/template-assets/{$thumbnailAsset->id}/diagnose")
+            ->assertOk()
+            ->assertJsonPath('asset_id', $thumbnailAsset->id)
+            ->assertJsonPath('file_category', 'template_thumbnail')
+            ->assertJsonPath('category_allowed', true)
+            ->assertJsonPath('storage_disk', 'public')
+            ->assertJsonPath('file_path', $thumbnailPath)
+            ->assertJsonPath('disk_exists', true)
+            ->assertJsonPath('absolute_file_exists', true)
+            ->assertJsonPath('actual_file_size_bytes', Storage::disk('public')->size($thumbnailPath))
+            ->assertJsonPath('png_signature_valid', true)
+            ->assertJsonPath('diagnostic_error', null);
+    }
+
+    public function test_device_template_asset_supports_partial_content_range(): void
+    {
+        $device = $this->createDevice();
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-SIGNED-002',
+            'template_name' => 'Template Signed Range Asset',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+
+        $thumbnailPath = 'templates/thumb-test/signed-range-thumbnail.png';
+        $fakeThumbnail = UploadedFile::fake()->image('signed-range-thumbnail.png', 120, 120);
+        Storage::disk('public')->put(
+            $thumbnailPath,
+            file_get_contents($fakeThumbnail->getRealPath()) ?: ''
+        );
+
+        $thumbnailAsset = AssetFile::create([
+            'id' => (string) Str::uuid(),
+            'storage_disk' => 'public',
+            'file_path' => $thumbnailPath,
+            'file_name' => 'signed-range-thumbnail.png',
+            'file_ext' => 'png',
+            'mime_type' => 'image/png',
+            'file_size_bytes' => Storage::disk('public')->size($thumbnailPath),
+            'file_category' => 'template_thumbnail',
+            'created_by_type' => 'system',
+        ]);
+
+        TemplateAsset::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $template->id,
+            'asset_type' => 'thumbnail_image',
+            'file_id' => $thumbnailAsset->id,
+            'sort_order' => 0,
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $response = $this->getJson("/api/device/templates/{$template->id}")
+            ->assertOk();
+
+        $signedUrl = (string) $response->json('template.thumbnail_url');
+        $path = parse_url($signedUrl, PHP_URL_PATH);
+        $query = parse_url($signedUrl, PHP_URL_QUERY);
+        $signedPath = $path.($query ? '?'.$query : '');
+
+        $partialResponse = $this->withHeaders(['Range' => 'bytes=0-31'])
+            ->get($signedPath)
+            ->assertStatus(206)
+            ->assertHeader('accept-ranges', 'bytes')
+            ->assertHeader('content-length', '32');
+        $this->assertStringStartsWith(
+            'bytes 0-31/',
+            (string) $partialResponse->headers->get('content-range')
+        );
+
+        $invalidPartialResponse = $this->withHeaders(['Range' => 'bytes=999999-1000000'])
+            ->get($signedPath)
+            ->assertStatus(416)
+            ->assertHeader('accept-ranges', 'bytes');
+        $this->assertStringStartsWith(
+            'bytes */',
+            (string) $invalidPartialResponse->headers->get('content-range')
+        );
+    }
+
+    public function test_device_template_asset_can_offload_with_x_sendfile_header(): void
+    {
+        Config::set('filesystems.template_assets.delivery_driver', 'x_sendfile');
+        Config::set('filesystems.template_assets.x_sendfile_header', 'X-Sendfile');
+
+        $device = $this->createDevice();
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-SIGNED-003',
+            'template_name' => 'Template Signed X-Sendfile Asset',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+
+        $thumbnailPath = 'templates/thumb-test/signed-xsendfile-thumbnail.png';
+        $fakeThumbnail = UploadedFile::fake()->image('signed-xsendfile-thumbnail.png', 120, 120);
+        Storage::disk('public')->put(
+            $thumbnailPath,
+            file_get_contents($fakeThumbnail->getRealPath()) ?: ''
+        );
+
+        $thumbnailAsset = AssetFile::create([
+            'id' => (string) Str::uuid(),
+            'storage_disk' => 'public',
+            'file_path' => $thumbnailPath,
+            'file_name' => 'signed-xsendfile-thumbnail.png',
+            'file_ext' => 'png',
+            'mime_type' => 'image/png',
+            'file_size_bytes' => Storage::disk('public')->size($thumbnailPath),
+            'file_category' => 'template_thumbnail',
+            'created_by_type' => 'system',
+        ]);
+
+        TemplateAsset::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $template->id,
+            'asset_type' => 'thumbnail_image',
+            'file_id' => $thumbnailAsset->id,
+            'sort_order' => 0,
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $response = $this->getJson("/api/device/templates/{$template->id}")
+            ->assertOk();
+
+        $signedUrl = (string) $response->json('template.thumbnail_url');
+        $path = parse_url($signedUrl, PHP_URL_PATH);
+        $query = parse_url($signedUrl, PHP_URL_QUERY);
+        $signedPath = $path.($query ? '?'.$query : '');
+
+        $absolutePath = Storage::disk('public')->path($thumbnailPath);
+
+        $this->get($signedPath)
+            ->assertOk()
+            ->assertHeader('x-sendfile', $absolutePath)
+            ->assertHeader('content-type', 'image/png')
+            ->assertHeader('accept-ranges', 'bytes');
+    }
+
+    public function test_device_can_create_edit_job_and_render_via_device_endpoints(): void
+    {
+        $this->createEditorUser();
+        $device = $this->createDevice();
+        $session = $this->createSession($device);
+        $session->update([
+            'payment_status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-DEVICE-RENDER-001',
+            'template_name' => 'Device Render Template',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $template->id,
+            'slot_index' => 1,
+            'x' => 0,
+            'y' => 0,
+            'width' => 1200,
+            'height' => 1800,
+            'rotation' => 0,
+            'border_radius' => 0,
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $this->postJson("/api/device/sessions/{$session->id}/photos", [
+            'photo' => UploadedFile::fake()->image('capture.jpg', 1200, 1800),
+            'capture_index' => 1,
+        ])->assertCreated();
+
+        $this->postJson("/api/device/sessions/{$session->id}/complete", [
+            'total_expected_photos' => 1,
+        ])->assertOk();
+
+        $sessionPhotoId = (string) $session->fresh()
+            ->photos()
+            ->orderBy('capture_index')
+            ->value('id');
+
+        $editJobResponse = $this->postJson("/api/device/sessions/{$session->id}/edit-jobs", [
+            'template_id' => $template->id,
+            'items' => [
+                [
+                    'session_photo_id' => $sessionPhotoId,
+                    'slot_index' => 1,
+                ],
+            ],
+        ]);
+
+        $editJobResponse->assertCreated()
+            ->assertJsonPath('session_id', $session->id)
+            ->assertJsonPath('session_status', 'editing');
+
+        $editJobId = (string) $editJobResponse->json('edit_job_id');
+
+        $this->postJson("/api/device/edit-jobs/{$editJobId}/render")
+            ->assertCreated()
+            ->assertJsonPath('status', 'ready_print')
+            ->assertJsonPath('rendered_output_id', fn ($value) => filled($value))
+            ->assertJsonPath('file_url', fn ($value) => is_string($value) && $value !== '');
+    }
+
+    public function test_device_cannot_create_or_render_edit_jobs_for_other_device_sessions(): void
+    {
+        $editor = $this->createEditorUser();
+        $ownerDevice = $this->createDevice();
+        $otherDevice = $this->createDevice();
+        $ownerSession = $this->createSession($ownerDevice);
+        $ownerSession->update([
+            'payment_status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-DEVICE-SEC-001',
+            'template_name' => 'Device Security Template',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $template->id,
+            'slot_index' => 1,
+            'x' => 0,
+            'y' => 0,
+            'width' => 1200,
+            'height' => 1800,
+            'rotation' => 0,
+            'border_radius' => 0,
+        ]);
+
+        $asset = AssetFile::create([
+            'id' => (string) Str::uuid(),
+            'storage_disk' => 'public',
+            'file_path' => 'stations/test/original.jpg',
+            'file_name' => 'original.jpg',
+            'file_ext' => 'jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size_bytes' => 1024,
+            'file_category' => 'original',
+            'created_by_type' => 'device',
+            'created_by_id' => $ownerDevice->id,
+        ]);
+
+        $sessionPhoto = SessionPhoto::create([
+            'id' => (string) Str::uuid(),
+            'session_id' => $ownerSession->id,
+            'capture_index' => 1,
+            'original_file_id' => $asset->id,
+            'mime_type' => 'image/jpeg',
+            'file_size_bytes' => 1024,
+            'is_selected' => true,
+            'uploaded_at' => now(),
+        ]);
+
+        Sanctum::actingAs($otherDevice);
+
+        $this->postJson("/api/device/sessions/{$ownerSession->id}/edit-jobs", [
+            'template_id' => $template->id,
+            'items' => [
+                [
+                    'session_photo_id' => $sessionPhoto->id,
+                    'slot_index' => 1,
+                ],
+            ],
+        ])
+            ->assertForbidden()
+            ->assertJsonPath('message', 'This session does not belong to this device.');
+
+        $editJob = EditJob::create([
+            'id' => (string) Str::uuid(),
+            'session_id' => $ownerSession->id,
+            'editor_id' => $editor->id,
+            'template_id' => $template->id,
+            'version_no' => 1,
+            'status' => 'draft',
+            'started_at' => now(),
+        ]);
+
+        $this->postJson("/api/device/edit-jobs/{$editJob->id}/render")
+            ->assertForbidden()
+            ->assertJsonPath('message', 'This edit job does not belong to this device session.');
+    }
+
+    public function test_device_can_upload_final_rendered_output_from_android_preview(): void
+    {
+        $this->createEditorUser();
+        $device = $this->createDevice();
+        $session = $this->createSession($device);
+        $session->update([
+            'payment_status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-DEVICE-FINAL-001',
+            'template_name' => 'Device Final Render Template',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+
+        TemplateSlot::create([
+            'id' => (string) Str::uuid(),
+            'template_id' => $template->id,
+            'slot_index' => 1,
+            'x' => 0,
+            'y' => 0,
+            'width' => 1200,
+            'height' => 1800,
+            'rotation' => 0,
+            'border_radius' => 0,
+        ]);
+
+        Sanctum::actingAs($device);
+
+        $this->postJson("/api/device/sessions/{$session->id}/photos", [
+            'photo' => UploadedFile::fake()->image('capture.jpg', 1200, 1800),
+            'capture_index' => 1,
+        ])->assertCreated();
+
+        $this->postJson("/api/device/sessions/{$session->id}/complete", [
+            'total_expected_photos' => 1,
+        ])->assertOk();
+
+        $sessionPhotoId = (string) $session->fresh()
+            ->photos()
+            ->orderBy('capture_index')
+            ->value('id');
+
+        $editJobResponse = $this->postJson("/api/device/sessions/{$session->id}/edit-jobs", [
+            'template_id' => $template->id,
+            'items' => [
+                [
+                    'session_photo_id' => $sessionPhotoId,
+                    'slot_index' => 1,
+                ],
+            ],
+        ]);
+
+        $editJobResponse->assertCreated();
+
+        $editJobId = (string) $editJobResponse->json('edit_job_id');
+
+        $uploadResponse = $this->postJson("/api/device/sessions/{$session->id}/rendered-output", [
+            'edit_job_id' => $editJobId,
+            'rendered_image' => UploadedFile::fake()->image('android-final.png', 1200, 1800),
+            'dpi' => 300,
+        ]);
+
+        $uploadResponse->assertCreated()
+            ->assertJsonPath('message', 'Rendered output uploaded')
+            ->assertJsonPath('status', 'ready_print')
+            ->assertJsonPath('rendered_output_id', fn ($value) => filled($value))
+            ->assertJsonPath('file_url', fn ($value) => is_string($value) && $value !== '');
+
+        $renderedOutputId = (string) $uploadResponse->json('rendered_output_id');
+        $filePath = (string) $uploadResponse->json('file_path');
+
+        $this->assertDatabaseHas('rendered_outputs', [
+            'id' => $renderedOutputId,
+            'session_id' => $session->id,
+            'edit_job_id' => $editJobId,
+            'is_active' => true,
+            'render_type' => 'final_print',
+        ]);
+
+        $this->assertDatabaseHas('photo_sessions', [
+            'id' => $session->id,
+            'status' => 'ready_print',
+        ]);
+
+        $this->assertDatabaseHas('asset_files', [
+            'file_path' => $filePath,
+            'file_category' => 'rendered',
+            'created_by_type' => 'device',
+            'created_by_id' => $device->id,
+        ]);
+
+        Storage::disk('public')->assertExists($filePath);
+    }
+
+    public function test_device_cannot_upload_final_rendered_output_for_other_device_session(): void
+    {
+        $editor = $this->createEditorUser();
+        $ownerDevice = $this->createDevice();
+        $otherDevice = $this->createDevice();
+        $session = $this->createSession($ownerDevice);
+
+        $template = Template::create([
+            'id' => (string) Str::uuid(),
+            'template_code' => 'TPL-DEVICE-FINAL-SEC-001',
+            'template_name' => 'Device Final Security Template',
+            'category' => 'photobooth',
+            'paper_size' => '4R',
+            'canvas_width' => 1200,
+            'canvas_height' => 1800,
+            'status' => 'active',
+        ]);
+
+        $editJob = EditJob::create([
+            'id' => (string) Str::uuid(),
+            'session_id' => $session->id,
+            'editor_id' => $editor->id,
+            'template_id' => $template->id,
+            'version_no' => 1,
+            'status' => 'draft',
+            'started_at' => now(),
+        ]);
+
+        Sanctum::actingAs($otherDevice);
+
+        $this->postJson("/api/device/sessions/{$session->id}/rendered-output", [
+            'edit_job_id' => $editJob->id,
+            'rendered_image' => UploadedFile::fake()->image('android-final.png', 1200, 1800),
+        ])
+            ->assertForbidden()
+            ->assertJsonPath('message', 'This session does not belong to this device.');
     }
 
     protected function createDevice(): AndroidDevice

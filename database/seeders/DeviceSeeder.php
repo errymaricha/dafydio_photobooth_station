@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Hash;
 use App\Models\AndroidDevice;
 use App\Models\Station;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DeviceSeeder extends Seeder
 {
@@ -31,6 +31,7 @@ class DeviceSeeder extends Seeder
         $device->fill([
             'station_id' => $station->id,
             'device_name' => 'Tablet Booth 1',
+            'device_type' => 'android',
             'api_key_hash' => Hash::make('secret-device-key'),
             'status' => 'active',
         ]);

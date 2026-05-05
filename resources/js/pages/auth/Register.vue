@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { login } from '@/routes';
+import { login } from '@/lib/stationRoutes';
 import * as register from '@/routes/register';
 
 const password = ref('');
@@ -35,7 +35,7 @@ const password = ref('');
         />
 
         <div
-            class="relative z-10 w-full max-w-[28rem] rounded-xl border border-[#ebe8f6] bg-white px-8 py-10 shadow-[0_6px_20px_rgba(47,43,61,0.08)]"
+            class="relative z-10 w-full max-w-md rounded-xl border border-[#ebe8f6] bg-white px-8 py-10 shadow-[0_6px_20px_rgba(47,43,61,0.08)]"
         >
             <div class="mb-8 flex items-center justify-center gap-3">
                 <span class="text-[#7367f0]">
@@ -61,11 +61,17 @@ const password = ref('');
                         />
                     </svg>
                 </span>
-                <h2 class="text-[2rem] leading-none font-semibold text-[#2f2b3dcf]">Dafydio Station</h2>
+                <h2
+                    class="text-[2rem] leading-none font-semibold text-[#2f2b3dcf]"
+                >
+                    Dafydio Station
+                </h2>
             </div>
 
             <div class="mb-7">
-                <h3 class="text-[2rem] leading-tight font-medium text-[#2f2b3dcc]">
+                <h3
+                    class="text-[2rem] leading-tight font-medium text-[#2f2b3dcc]"
+                >
                     Adventure starts here 🚀
                 </h3>
                 <p class="mt-1 text-[1.0625rem] text-[#2f2b3d99]">
@@ -137,7 +143,11 @@ const password = ref('');
                         placeholder="············"
                         class="h-11 border-[#d8d4e7] text-[1rem] placeholder:text-[#2f2b3d66]"
                     />
-                    <input type="hidden" name="password_confirmation" :value="password">
+                    <input
+                        type="hidden"
+                        name="password_confirmation"
+                        :value="password"
+                    />
                     <InputError :message="errors.password" />
                     <InputError :message="errors.password_confirmation" />
                 </div>
@@ -149,8 +159,8 @@ const password = ref('');
                     <input
                         id="terms-conditions"
                         type="checkbox"
-                        class="h-[1.125rem] w-[1.125rem] rounded-sm border border-[#d8d4e7] text-[#7367f0] focus:ring-[#7367f0]"
-                    >
+                        class="h-4.5 w-4.5 rounded-sm border border-[#d8d4e7] text-[#7367f0] focus:ring-[#7367f0]"
+                    />
                     <span>I agree to</span>
                     <a href="#" class="text-[#7367f0] hover:underline">
                         privacy policy & terms
@@ -219,4 +229,3 @@ const password = ref('');
         </div>
     </div>
 </template>
-
